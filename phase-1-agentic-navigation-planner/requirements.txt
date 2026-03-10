@@ -1,0 +1,6 @@
+# Phase 1: Agentic Navigation Planner
+strands-agents
+strands-tools
+python-dotenv
+aws-deepracer-control-v2
+flask
