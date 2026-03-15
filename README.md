@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/strands-logo.png" alt="Strands" width="120" /> &nbsp; **×** &nbsp; <img src="../assets/deepracer-logo.png" alt="AWS DeepRacer" width="120" />
+<img src="/assets/strands-logo.png" alt="Strands" width="120" /> &nbsp; **×** &nbsp; <img src="/assets/deepracer-logo.png" alt="AWS DeepRacer" width="120" />
 
 # Phase 2 — AgentTool Navigation Planner
 
