@@ -2,14 +2,17 @@
 
 <img src="assets/strands-logo.png" alt="Strands" width="140" /> &nbsp; **×** &nbsp; <img src="assets/deepracer-logo.png" alt="AWS DeepRacer" width="140" />
 
-# Strands Agentic DeepRacer
+# Prompt to Autonomous Drive
 
-*Agentic navigation and control for AWS DeepRacer using [Strands Agents](https://strandsagents.com) and natural language.*
+### Agentic DeepRacer powered by Strands SDK and Amazon Nova
+
+*Type a sentence. Watch a 1/18-scale autonomous car plan, navigate, and adapt in real time — powered by Amazon Nova Lite and Nova Pro on Amazon Bedrock.*
 
 [![Strands](https://img.shields.io/badge/Strands-Agentic-0969da?style=flat)](https://strandsagents.com)
 [![AWS DeepRacer](https://img.shields.io/badge/AWS-DeepRacer-FF9900?style=flat)](https://aws.amazon.com/deepracer/)
+[![Nova](https://img.shields.io/badge/Amazon%20Nova-Lite%20%C2%B7%20Pro-7B2FBE?style=flat)](https://aws.amazon.com/bedrock/nova/)
+[![Amazon Bedrock](https://img.shields.io/badge/Amazon-Bedrock-232F3E?style=flat&logo=amazonaws)](https://aws.amazon.com/bedrock/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![Bedrock](https://img.shields.io/badge/Amazon-Bedrock-232F3E?style=flat&logo=amazon-aws)](https://aws.amazon.com/bedrock/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
 
 <br/>
@@ -20,155 +23,78 @@
 
 ## What This Is
 
-This project brings **agentic AI** to an AWS DeepRacer 1/18-scale autonomous car. Instead of writing control scripts, you describe what you want the car to do in plain English. An LLM (Amazon Nova via Bedrock) reasons about the request, decomposes it into a physics-aware sequence of movement steps, and executes the plan against the DeepRacer's web API.
+This project brings fully agentic AI navigation to an AWS DeepRacer 1/18-scale autonomous car. Instead of writing control scripts, you describe what you want the car to do in plain English — and it executes. Built end-to-end on the **Strands Agents SDK** and **Amazon Nova** (via Amazon Bedrock), with an architecture directly inspired by [strands-labs/robots](https://github.com/strands-labs/robots).
 
-The project is structured in three phases, each delegating more intelligence to the edge.
+The project is structured across three phases, each adding a new layer of intelligence — from human-in-the-loop confirmation to closed-loop autonomous vision that adapts mid-execution.
+
+![Amazon Nova Roles](assets/nova_roles.svg)
 
 ---
 
 ## Phase Overview
 
-| Phase | Where the agent runs | What's new | Status |
-|-------|---------------------|------------|--------|
-| **Phase 1** | PC operator | LLM plans → human confirms → car executes | ✅ Complete |
-| **Phase 2** | PC operator | `AgentTool` architecture · physics-aware planner · pattern library · async control | ✅ Complete |
-| **Phase 3** | Car edge device | Edge-deployed LLM · camera perception · mid-execution replanning | 🗓 Planned |
+![Phase Progression](assets/phase_progression.svg)
 
 ---
 
-## Phase 1: PC Operator — Agentic Planner
+## Phase 1 — Agentic Planner
 
-The first implementation. The LLM runs on the PC, produces a JSON plan from a natural-language prompt, the operator reviews and confirms, then the full sequence runs against the DeepRacer web API in one shot.
+The first proof of concept. A Strands Agent powered by **Amazon Nova Lite** receives a natural language instruction, produces a JSON movement plan, waits for human confirmation, then executes the full plan against the DeepRacer web API.
 
-### Architecture
+![Phase 1 Architecture](assets/phase1_architecture.svg)
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  PC (Operator)                                                        │
-│                                                                       │
-│   Natural language ──▶ LLM Planner ──▶ JSON plan                     │
-│                         (Nova Lite)     [connect, fwd, left, …]       │
-│                                                │                      │
-│                         Operator confirms      ▼                      │
-│                                         Plan executor                 │
-│                                         (deepracer_tools)             │
-└─────────────────────────────────────────────────────┼────────────────┘
-                                                       │
-                                         Web API (HTTP)
-                                                       │
-                                                       ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│  AWS DeepRacer (device)                                               │
-│  Receives and runs the plan                                           │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-**Key characteristics:**
-- Single-shot planning: plan once, confirm once, run once
-- Simple `@tool` functions wrapping the DeepRacer HTTP API
-- Basic step validation
-- Terminal REPL + Flask web UI
+**Key characteristics:** single-shot planning, bare `@tool` functions, terminal REPL, basic Flask UI.
 
 📁 [`phase-1-agentic-navigation-planner/`](./phase-1-agentic-navigation-planner/)
 
 ---
 
-## Phase 2: AgentTool Architecture — Physics-Aware Planner
+## Phase 2 — AgentTool Architecture
 
-A ground-up redesign that brings the system architecture in line with [Strands Robots](https://github.com/strands-labs/robots) and dramatically improves navigation capability. The interface stays the same (type, confirm, run) but everything underneath is rebuilt.
+A ground-up redesign modelled on [strands-labs/robots](https://github.com/strands-labs/robots). **Amazon Nova Lite** drives all navigation planning — physics-aware, pattern-calibrated, and rotation-verified. Same interface (type, confirm, watch) but with a production-grade Strands `AgentTool` architecture underneath.
 
-### Architecture
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PC (Operator)                                                                │
-│                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────┐  │
-│  │  Strands Agent                                                           │  │
-│  │                                                                          │  │
-│  │  Natural language ──▶  NavigationPolicy  ──▶  validate_plan()           │  │
-│  │                        (Nova / Mock /         (schema + physics caps)    │  │
-│  │                         Replay)                      │                   │  │
-│  │                                                       ▼                  │  │
-│  │                                            DeepRacerTool (AgentTool)     │  │
-│  │                                            ┌──────────────────────────┐  │  │
-│  │                                            │  execute / start /       │  │  │
-│  │                                            │  status  / stop          │  │  │
-│  │                                            │  TaskManager (async)     │  │  │
-│  │                                            └────────────┬─────────────┘  │  │
-│  └─────────────────────────────────────────────────────────┼────────────────┘  │
-└────────────────────────────────────────────────────────────┼───────────────────┘
-                                                             │
-                                              Web API (HTTP)
-                                                             │
-                                                             ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  AWS DeepRacer (device)                                                       │
-│  deepracer_tools: connect · forward · backward · left · right · stop          │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+![Phase 2 Architecture](assets/phase2_architecture.svg)
 
 **Key additions over Phase 1:**
-- `DeepRacerTool` as a proper Strands `AgentTool` with `execute / start / status / stop` actions
+- `DeepRacerTool(AgentTool)` — four-action async interface mirroring strands-robots
 - Physics-aware system prompt with rotation calibration, corner-speed limits, stabilisation rules
-- Named pattern library: 15 manoeuvres (circle, figure-8, square, triangle, slalom, spiral, …)
-- Mandatory chain-of-thought `_reasoning` field forces spatial decomposition before steps are committed
-- Policy abstraction (`NovaPolicy`, `MockPolicy`, `ReplayPolicy`) — swap planners without touching the executor
-- `StepResult` / `PlanResult` dataclasses replacing raw tuples
-- `stop_on_failure` emergency abort — failed step halts the car immediately
-- `--mock` flag for offline development and unit testing
+- 15 verified navigation patterns (circle, figure-8, square, slalom, spiral-out, parallel-park…)
+- 8-point chain-of-thought `_reasoning` field forces rotation math before steps are committed
+- Rotation bug validator — `_check_rotation()` flags plans where total degrees ≠ 360°
+- Policy abstraction — swap Nova / Mock / Replay without touching the executor
+- Live SSE step streaming to Flask dashboard
 
-📁 [`phase-2-agentool-navigation-planner/`](./phase-2-agentool-navigation-planner/)
-
----
-
-## Phase 3: Edge LLM + Camera Navigation (Planned)
-
-Moves the entire agentic system from the PC to the car's edge device. The PC sends only prompts; the edge LLM interprets, plans, and commands the car directly. Camera input enables perception-driven replanning mid-execution.
-
-```
-┌──────────────┐   prompt   ┌──────────────────────────────────────────┐
-│  PC          │──────────▶│  Edge device (Jetson / DeepRacer compute) │
-│  (command    │           │  ┌─────────────────────────────────────┐   │
-│   source)    │           │  │  Edge LLM (small model)             │   │
-└──────────────┘           │  │  AgentTool control loop             │   │
-                           │  │  Camera perception                  │   │
-                           │  │  Mid-execution replanning           │   │
-                           │  └──────────────┬──────────────────────┘   │
-                           │                 │ direct hardware API       │
-                           │                 ▼                           │
-                           │       AWS DeepRacer motors / servos         │
-                           └──────────────────────────────────────────────┘
-```
-
-**Planned additions:**
-- Edge-deployed LLM (small distilled model via Ollama or similar)
-- Observation loop: camera frame → perception → action, closing the control loop at the edge
-- Intermediate replanning: obstacle detected mid-plan → replan without returning to PC
-- Reduced PC-to-car round-trip latency
+📁 [`phase-2-strands-robots-deepracer/`](./phase-2-strands-robots-deepracer/)
 
 ---
 
-## How Strands Robots Inspired Phase 2
+## Phase 3 — Closed-Loop Vision Navigation
 
-Phase 2 architecture is directly and intentionally modelled on **[strands-labs/robots](https://github.com/strands-labs/robots)**, the physical-robot control library for Strands Agents. The table below maps each concept:
+The full autonomous system. **Amazon Nova Pro** — Amazon's most capable multimodal model — watches the car's front camera frame by frame between every movement step. It reads the original instruction, looks at the live frame, and decides what to do next: continue the plan, replan around an obstacle, or abort immediately.
 
-| strands-robots pattern | Phase 2 implementation |
-|------------------------|------------------------|
-| `Robot(AgentTool)` — robot as a first-class tool | `DeepRacerTool(AgentTool)` in `deepracer_agent_tool.py` |
-| `execute / start / status / stop` action dispatch | Same four actions in `tool_spec` and `stream()` |
-| `RobotTaskState` dataclass with `TaskStatus` enum | `DeepRacerTaskState` + `TaskStatus` |
-| `ThreadPoolExecutor(max_workers=1)` single-worker | Identical executor for one-plan-at-a-time constraint |
-| `_execute_task_async` / `_execute_task_sync` split | `_execute_task_async` + `_sync_wrapper` with same event-loop detection logic |
-| `_shutdown_event = threading.Event()` | Identical — checked each step of the execution loop |
-| `cleanup()` / `__del__` resource teardown | `cleanup()` calls `reset_client()` + executor shutdown |
-| `Policy` abstraction (GR00T / Mock / Custom) | `NavigationPolicy` + `NovaPolicy` / `MockPolicy` / `ReplayPolicy` |
-| `create_policy(provider, **kwargs)` factory | Same factory pattern in `agent.py` |
-| `get_observation() → get_actions() → send_action()` loop | `execute_step()` loop with `stop_on_failure` abort |
-| Non-blocking `start` + `status` poll for long tasks | `_action_start()` + `_action_status()` for multi-step plans |
-| Structured result reporting | `StepResult` / `PlanResult` dataclasses |
+![Phase 3 Architecture](assets/phase3_architecture.svg)
 
-The core insight borrowed from strands-robots: **a physical actuator (robot arm or RC car) should be a Strands `AgentTool` like any other tool**, with the same four lifecycle actions. This lets the Strands agent decide whether to run plans synchronously or asynchronously, poll progress, and abort — exactly as a human operator would.
+**Key additions over Phase 2:**
+- `camera_stream.py` — non-blocking MJPEG frame buffer, parses by SOI/EOI byte markers, reconnects on failure
+- `vision_assessor.py` — Nova Pro multimodal Converse API with raw JPEG bytes (no base64), instruction-honouring prompts, `safe_continue()` fallback on timeout
+- `camera_policy.py` — `CameraPolicy(NavigationPolicy)` orchestrator, duck-typed `has_vision=True`
+- Instruction-driven decision mapping: `"stop when"` → `abort`, `"avoid"` → `replan`, no mention → `continue`
+- `_execute_approved_plan()` — web UI Execute button runs approved plan with vision checks
+- DeepRacer stream topic fix: `/camera_pkg/display_mjpeg` (library patch in `deepracer_tools.py`)
+- 4-column web dashboard: physics · plan+results · live camera feed + vision log · patterns
+
+📁 [`phase-3-adaptive-visual-navigation/`](./phase-3-adaptive-visual-navigation/)  
+📖 [Phase 3 README](./phase-3-adaptive-visual-navigation/README.md)
+
+---
+
+## How Strands Robots Inspired This Project
+
+The entire architecture is modelled on **[strands-labs/robots](https://github.com/strands-labs/robots)**, the physical-robot control library for Strands Agents. Every concept maps directly:
+
+![Strands Robots Mapping](assets/strands_mapping.svg)
+
+**The key insight from strands-robots:** a physical actuator should be a Strands `AgentTool` like any other tool — with the same four lifecycle actions. The Strands agent can then run plans synchronously or asynchronously, poll progress, and abort mid-execution, all through the standard agent loop.
 
 ---
 
@@ -177,44 +103,129 @@ The core insight borrowed from strands-robots: **a physical actuator (robot arm 
 ```
 strands-agentic-deepracer/
 │
-├── README.md                          ← this file
+├── README.md                                    ← this file
 │
 ├── phase-1-agentic-navigation-planner/
 │   ├── README.md
-│   ├── agent.py                       ← planner + executor (Phase 1)
-│   ├── deepracer_tools.py             ← @tool functions (Phase 1)
-│   ├── main.py                        ← terminal REPL
-│   ├── app_ui.py                      ← Flask web UI
+│   ├── agent.py
+│   ├── deepracer_tools.py
+│   ├── main.py
+│   ├── app_ui.py
 │   ├── requirements.txt
 │   └── .env.example
 │
-├── phase-2-agentool-navigation-planner/
+├── phase-2-strands-robots-deepracer/
 │   ├── README.md
-│   ├── agent.py                       ← planner, policy abstraction, executor
-│   ├── deepracer_tools.py             ← @tool functions with physics notes
-│   ├── deepracer_agent_tool.py        ← DeepRacerTool(AgentTool)
-│   ├── main.py                        ← terminal REPL (--mock, --model)
+│   ├── agent.py
+│   ├── deepracer_tools.py
+│   ├── deepracer_agent_tool.py
+│   ├── main.py
+│   ├── app_ui.py
+│   ├── templates/index.html
+│   ├── requirements.txt
+│   └── .env.example
+│
+├── phase-3-adaptive-visual-navigation/
+│   ├── README.md
+│   ├── agent.py
+│   ├── camera_stream.py
+│   ├── vision_assessor.py
+│   ├── camera_policy.py
+│   ├── deepracer_agent_tool.py
+│   ├── deepracer_tools.py
+│   ├── main.py
+│   ├── app_ui.py
+│   ├── templates/index.html
+│   ├── cam_feed_poc.py
+│   ├── assets/
+│   │   ├── architecture.svg
+│   │   └── observation_action_loop.svg
 │   ├── requirements.txt
 │   └── .env.example
 │
 └── assets/
     ├── strands-logo.png
     ├── deepracer-logo.png
-    └── deepracer_bg.png
+    ├── phase_progression.svg
+    ├── nova_roles.svg
+    ├── phase1_architecture.svg
+    ├── phase2_architecture.svg
+    ├── phase3_architecture.svg
+    └── strands_mapping.svg
+```
+
+---
+
+## Quick Start
+
+### Phase 2 (no camera required)
+
+```bash
+cd phase-2-strands-robots-deepracer
+cp .env.example .env
+# fill in DEEPRACER_IP, DEEPRACER_PASSWORD, AWS_REGION
+
+pip install -r requirements.txt
+
+python main.py                  # terminal REPL
+python app_ui.py                # web dashboard → http://127.0.0.1:5000
+python main.py --mock           # offline, no hardware needed
+```
+
+### Phase 3 (camera + vision)
+
+```bash
+cd phase-3-adaptive-visual-navigation
+cp .env.example .env
+# fill in DEEPRACER_IP, DEEPRACER_PASSWORD, AWS_REGION
+# set VISION_MODEL=us.amazon.nova-pro-v1:0
+
+pip install -r requirements.txt
+
+python app_ui.py                # web dashboard with camera feed + vision log
+python main.py --vision         # terminal REPL with live vision decisions
+python cam_feed_poc.py          # POC: display camera feed only
 ```
 
 ---
 
 ## Requirements
 
-| Requirement | Phase 1 | Phase 2 |
-|-------------|---------|---------|
-| Python 3.10+ | ✅ | ✅ |
-| AWS DeepRacer on same network | ✅ | ✅ |
-| DeepRacer web console password | ✅ | ✅ |
-| AWS credentials + Bedrock access | ✅ | ✅ (or `--mock`) |
-| `aws-deepracer-control-v2` | ✅ | ✅ |
-| `strands-agents` | ✅ | ✅ |
+| Requirement | Phase 1 | Phase 2 | Phase 3 |
+|---|---|---|---|
+| Python 3.10+ | ✅ | ✅ | ✅ |
+| AWS DeepRacer on same network | ✅ | ✅ | ✅ |
+| DeepRacer web console password | ✅ | ✅ | ✅ |
+| AWS credentials + Bedrock access | ✅ | ✅ (or `--mock`) | ✅ |
+| Amazon Nova Lite (`us.amazon.nova-lite-v1:0`) | ✅ | ✅ | ✅ |
+| Amazon Nova Pro (`us.amazon.nova-pro-v1:0`) | — | — | ✅ |
+| DeepRacer front camera (USB) | — | — | ✅ |
+| `aws-deepracer-control-v2` | ✅ | ✅ | ✅ |
+| `strands-agents` | ✅ | ✅ | ✅ |
+| `boto3` | ✅ | ✅ | ✅ |
+| `flask` | ✅ | ✅ | ✅ |
+
+---
+
+## Example Prompts
+
+```
+# Navigation patterns
+drive a full circle
+do a figure-8
+slalom through 3 cones
+drive a square with 2-second sides
+spiral outward
+parallel park
+do a U-turn and come back
+
+# Vision-reactive (Phase 3)
+move forward and stop when you see an obstacle
+drive forward 3 seconds, stop if you see red
+move toward the cone and halt when it is in front of you
+drive forward slowly and stop when you see tape on the floor
+move forward, avoid any obstacles you see
+```
 
 ---
 

@@ -1,0 +1,62 @@
+<svg width="800" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" style="background:#0a0b0d;font-family:'Barlow',sans-serif">
+
+  <!-- Spine line -->
+  <line x1="100" y1="100" x2="700" y2="100" stroke="#3a3f4a" stroke-width="2"/>
+
+  <!-- Phase 1 -->
+  <circle cx="160" cy="100" r="22" fill="#04342C" stroke="#1D9E75" stroke-width="1.5"/>
+  <text x="160" y="96" text-anchor="middle" font-size="11" font-weight="600" fill="#9FE1CB" font-family="'Barlow Condensed',sans-serif">Phase</text>
+  <text x="160" y="110" text-anchor="middle" font-size="14" font-weight="700" fill="#3ddc84">1</text>
+  <text x="160" y="142" text-anchor="middle" font-size="12" font-weight="600" fill="#e2e4e9" font-family="'Barlow Condensed',sans-serif" letter-spacing="0.05em">Agentic Planner</text>
+  <text x="160" y="158" text-anchor="middle" font-size="10" fill="#7a8090">Prompt → Plan → Execute</text>
+  <text x="160" y="48" text-anchor="middle" font-size="10" fill="#3ddc84">✓ Complete</text>
+  <!-- Feature pills -->
+  <rect x="95" y="168" width="130" height="18" rx="4" fill="#111318" stroke="#3a3f4a" stroke-width="0.5"/>
+  <text x="160" y="181" text-anchor="middle" font-size="9" fill="#7a8090">Nova Lite · @tool · terminal</text>
+
+  <!-- Arrow 1→2 -->
+  <path d="M185 100 L285 100" stroke="#3a3f4a" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="235" y="93" text-anchor="middle" font-size="9" fill="#5F5E5A">AgentTool</text>
+  <text x="235" y="108" text-anchor="middle" font-size="9" fill="#5F5E5A">redesign</text>
+
+  <!-- Phase 2 -->
+  <circle cx="310" cy="100" r="22" fill="#26215C" stroke="#7F77DD" stroke-width="1.5"/>
+  <text x="310" y="96" text-anchor="middle" font-size="11" font-weight="600" fill="#CECBF6" font-family="'Barlow Condensed',sans-serif">Phase</text>
+  <text x="310" y="110" text-anchor="middle" font-size="14" font-weight="700" fill="#AFA9EC">2</text>
+  <text x="310" y="142" text-anchor="middle" font-size="12" font-weight="600" fill="#e2e4e9" font-family="'Barlow Condensed',sans-serif" letter-spacing="0.05em">AgentTool Architecture</text>
+  <text x="310" y="158" text-anchor="middle" font-size="10" fill="#7a8090">Patterns · Physics · Dashboard</text>
+  <text x="310" y="48" text-anchor="middle" font-size="10" fill="#3ddc84">✓ Complete</text>
+  <rect x="228" y="168" width="164" height="18" rx="4" fill="#111318" stroke="#3a3f4a" stroke-width="0.5"/>
+  <text x="310" y="181" text-anchor="middle" font-size="9" fill="#7a8090">Nova Lite · 15 patterns · SSE · Flask</text>
+
+  <!-- Arrow 2→3 -->
+  <path d="M335 100 L435 100" stroke="#3a3f4a" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="385" y="93" text-anchor="middle" font-size="9" fill="#5F5E5A">+vision</text>
+  <text x="385" y="108" text-anchor="middle" font-size="9" fill="#5F5E5A">loop</text>
+
+  <!-- Phase 3 -->
+  <circle cx="460" cy="100" r="28" fill="#412402" stroke="#f5a623" stroke-width="2"/>
+  <text x="460" y="95" text-anchor="middle" font-size="11" font-weight="600" fill="#FAC775" font-family="'Barlow Condensed',sans-serif">Phase</text>
+  <text x="460" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#f5a623">3</text>
+  <text x="460" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#e2e4e9" font-family="'Barlow Condensed',sans-serif" letter-spacing="0.05em">Closed-Loop Vision</text>
+  <text x="460" y="164" text-anchor="middle" font-size="10" fill="#7a8090">See · Think · Adapt</text>
+  <text x="460" y="42" text-anchor="middle" font-size="10" fill="#3ddc84">✓ Complete</text>
+  <rect x="366" y="174" width="188" height="18" rx="4" fill="#111318" stroke="#3a3f4a" stroke-width="0.5"/>
+  <text x="460" y="187" text-anchor="middle" font-size="9" fill="#7a8090">Nova Lite + Nova Pro · MJPEG · continue/replan/abort</text>
+
+  <!-- Nova badge right side -->
+  <rect x="578" y="72" width="162" height="56" rx="8" fill="#111318" stroke="#7B2FBE" stroke-width="0.5"/>
+  <text x="659" y="93" text-anchor="middle" font-size="11" font-weight="600" fill="#CECBF6" font-family="'Barlow Condensed',sans-serif" letter-spacing="0.06em">AMAZON NOVA</text>
+  <line x1="595" y1="100" x2="722" y2="100" stroke="#3a3f4a" stroke-width="0.5"/>
+  <text x="620" y="117" text-anchor="middle" font-size="10" fill="#5DCAA5">Lite</text>
+  <text x="620" y="129" text-anchor="middle" font-size="9" fill="#7a8090">planning</text>
+  <text x="697" y="117" text-anchor="middle" font-size="10" fill="#f5a623">Pro</text>
+  <text x="697" y="129" text-anchor="middle" font-size="9" fill="#7a8090">vision</text>
+  <line x1="659" y1="101" x2="659" y2="138" stroke="#3a3f4a" stroke-width="0.5"/>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+</svg>

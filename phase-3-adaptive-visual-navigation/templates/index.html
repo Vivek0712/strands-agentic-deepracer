@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepRacer — Navigation Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg0:#0a0b0d; --bg1:#111318; --bg2:#181c22; --bg3:#1f242d;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --amber:#f5a623; --amber-lt:#ffc85e;
+  --red:#e84040; --green:#3ddc84; --blue:#4ea8de; --purple:#7F77DD;
+  --text:#e2e4e9; --muted:#7a8090; --faint:#3a3f4a;
+  --mono:'DM Mono',monospace; --sans:'Barlow',sans-serif; --cond:'Barlow Condensed',sans-serif;
+  --r:6px; --r-lg:10px;
+}
+html,body { height:100%; background:var(--bg0); color:var(--text); font-family:var(--sans); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+
+/* ── Layout — 4-column when vision active ────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+.layout.no-vision {
+  grid-template-columns: 240px 1fr 280px;
+  grid-template-areas: "header header header" "left main right";
+}
+.layout.has-vision {
+  grid-template-columns: 220px 1fr 300px 240px;
+  grid-template-areas: "header header header header" "left main camera right";
+}
+
+.header  { grid-area:header; }
+.sidebar { grid-area:left; }
+.main    { grid-area:main; }
+.camera  { grid-area:camera; display:none; }
+.sidebar-right { grid-area:right; }
+.layout.has-vision .camera { display:flex; flex-direction:column; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.header {
+  display:flex; align-items:center; gap:14px; padding:0 20px;
+  border-bottom:1px solid var(--border); background:var(--bg1);
+}
+.header-logo { display:flex; align-items:center; gap:10px; }
+.header-logo img { height:22px; opacity:.9; }
+.header-title { font-family:var(--cond); font-size:15px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+.header-spacer { flex:1; }
+.model-badge { font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); padding:3px 8px; }
+.vision-badge { font-family:var(--mono); font-size:11px; background:rgba(127,119,221,.15); border:1px solid rgba(127,119,221,.3); color:#AFA9EC; border-radius:var(--r); padding:3px 8px; }
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(--faint); transition:background .3s; }
+.status-dot.planning { background:var(--blue); animation:pulse 1s infinite; }
+.status-dot.running  { background:var(--amber); animation:pulse .6s infinite; }
+.status-dot.done     { background:var(--green); }
+.status-dot.error    { background:var(--red); }
+.status-label { font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Sidebar shared ─────────────────────────────────────────────────────── */
+.sidebar, .sidebar-right {
+  background:var(--bg1); overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.sidebar { border-right:1px solid var(--border); }
+.sidebar-right { border-left:1px solid var(--border); }
+.sidebar-section { padding:16px; border-bottom:1px solid var(--border); }
+.sidebar-label { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+
+/* ── Physics panel ──────────────────────────────────────────────────────── */
+.physics-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.phys-cell { background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); padding:10px 10px 8px; }
+.phys-value { font-family:var(--mono); font-size:17px; font-weight:500; color:var(--amber); line-height:1; margin-bottom:4px; }
+.phys-label { font-size:10px; color:var(--muted); line-height:1.3; font-family:var(--cond); text-transform:uppercase; letter-spacing:.05em; }
+.cal-row { display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:12px; }
+.cal-row:last-child { border-bottom:none; }
+.cal-lhs { color:var(--muted); }
+.cal-rhs { color:var(--amber-lt); }
+
+/* ── Prompt buttons ─────────────────────────────────────────────────────── */
+.prompt-btn { display:block; width:100%; text-align:left; background:none; border:none; color:var(--text); font-family:var(--sans); font-size:12px; padding:5px 8px; border-radius:var(--r); cursor:pointer; transition:background .15s, color .15s; }
+.prompt-btn:hover { background:var(--bg3); color:var(--amber-lt); }
+.prompt-btn::before { content:'›'; color:var(--faint); margin-right:6px; }
+
+/* ── Pattern list ───────────────────────────────────────────────────────── */
+.pattern-row { display:flex; align-items:baseline; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); gap:8px; }
+.pattern-row:last-child { border-bottom:none; }
+.pattern-name { font-family:var(--mono); font-size:11px; color:var(--amber); }
+.pattern-desc { font-size:11px; color:var(--muted); text-align:right; flex:1; }
+
+/* ── Camera panel ───────────────────────────────────────────────────────── */
+.camera {
+  background:var(--bg1); border-left:1px solid var(--border);
+}
+.camera-section { padding:16px; border-bottom:1px solid var(--border); }
+.camera-feed-wrap {
+  position:relative; background:var(--bg0); border:1px solid var(--border);
+  border-radius:var(--r); overflow:hidden; margin-bottom:12px;
+  aspect-ratio:4/3;
+}
+.camera-feed-wrap img {
+  width:100%; height:100%; object-fit:cover; display:block;
+  transition:opacity .1s;
+}
+.camera-no-feed {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:8px;
+  color:var(--faint); font-family:var(--mono); font-size:11px;
+}
+.cam-indicator { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.cam-dot { width:6px; height:6px; border-radius:50%; background:var(--faint); }
+.cam-dot.live { background:var(--green); animation:pulse .8s infinite; }
+.cam-dot.stale { background:var(--amber); }
+.cam-label { font-family:var(--mono); font-size:11px; color:var(--muted); }
+.cam-frames { font-family:var(--mono); font-size:10px; color:var(--faint); }
+.btn-reconnect { margin-left:auto; padding:4px 10px; font-size:11px; font-family:var(--mono); background:var(--bg2); border:1px solid var(--border2); border-radius:4px; color:var(--text); cursor:pointer; }
+.btn-reconnect:hover { background:var(--bg3); }
+.cam-error { font-size:11px; color:var(--muted); margin-bottom:8px; font-family:var(--mono); }
+
+/* ── Vision log ─────────────────────────────────────────────────────────── */
+.vision-log { padding:12px 16px; flex:1; overflow-y:auto; }
+.vision-entry {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:6px 0; border-bottom:1px solid var(--border);
+  animation:fadeIn .2s ease;
+}
+.vision-entry:last-child { border-bottom:none; }
+.vision-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; margin-top:1px; }
+.vision-icon.continue { background:rgba(61,220,132,.15); color:var(--green); }
+.vision-icon.replan   { background:rgba(78,168,222,.2);  color:var(--blue); }
+.vision-icon.abort    { background:rgba(232,64,64,.25);  color:var(--red); }
+.vision-step { font-family:var(--mono); font-size:10px; color:var(--faint); min-width:16px; margin-top:2px; }
+.vision-body { flex:1; }
+.vision-action { font-family:var(--mono); font-size:11px; font-weight:500; text-transform:uppercase; }
+.vision-action.continue { color:var(--green); }
+.vision-action.replan   { color:var(--blue); }
+.vision-action.abort    { color:var(--red); }
+.vision-reason { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.3; }
+.vision-conf   { font-family:var(--mono); font-size:10px; color:var(--faint); }
+
+.replan-banner {
+  margin:4px 0; padding:6px 10px; border-radius:var(--r);
+  background:rgba(78,168,222,.1); border:1px solid rgba(78,168,222,.25);
+  font-family:var(--mono); font-size:11px; color:var(--blue);
+  animation:fadeIn .25s ease;
+}
+
+/* ── Main area ──────────────────────────────────────────────────────────── */
+.main { display:flex; flex-direction:column; overflow:hidden; background:var(--bg0); }
+.input-section { padding:20px 24px 16px; border-bottom:1px solid var(--border); background:var(--bg1); }
+.input-row { display:flex; gap:10px; align-items:stretch; }
+.instruction-input { flex:1; background:var(--bg0); border:1px solid var(--border2); border-radius:var(--r); color:var(--text); font-family:var(--sans); font-size:14px; padding:10px 14px; outline:none; transition:border-color .2s; height:42px; }
+.instruction-input::placeholder { color:var(--faint); }
+.instruction-input:focus { border-color:var(--amber); }
+.btn { font-family:var(--cond); font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; border:none; border-radius:var(--r); padding:0 18px; height:42px; cursor:pointer; transition:opacity .15s, transform .1s; white-space:nowrap; }
+.btn:active { transform:scale(.97); }
+.btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+.btn-plan    { background:var(--amber); color:#000; }
+.btn-execute { background:var(--green); color:#000; }
+.btn-stop    { background:var(--red);   color:#fff; }
+.btn-cancel  { background:var(--bg3);   color:var(--muted); border:1px solid var(--border2); }
+.action-row { display:flex; gap:8px; margin-top:10px; align-items:center; }
+.warning-row { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+.warning-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(245,166,35,.1); border:1px solid rgba(245,166,35,.25); border-radius:4px; padding:4px 10px; font-family:var(--mono); font-size:11px; color:var(--amber-lt); }
+
+/* ── Content ────────────────────────────────────────────────────────────── */
+.content { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:20px; }
+.plan-card, .results-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; }
+.card-header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg2); }
+.card-label { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+.pattern-tag { font-family:var(--mono); font-size:11px; background:rgba(245,166,35,.15); border:1px solid rgba(245,166,35,.3); color:var(--amber-lt); padding:2px 8px; border-radius:4px; }
+.step-count-tag { font-family:var(--mono); font-size:11px; color:var(--muted); margin-left:auto; }
+.reasoning-block { padding:10px 16px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.7; background:var(--bg0); white-space:pre-wrap; word-break:break-word; }
+.steps-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+.steps-table th { text-align:left; padding:7px 16px; font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); background:var(--bg2); }
+.steps-table td { padding:7px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.steps-table tr:last-child td { border-bottom:none; }
+.steps-table tr:hover td { background:var(--bg2); }
+.action-pill { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
+.action-forward  { background:rgba(62,199,120,.15); color:#3ec778; }
+.action-backward { background:rgba(78,168,222,.15); color:#4ea8de; }
+.action-left     { background:rgba(187,107,217,.15); color:#bb6bd9; }
+.action-right    { background:rgba(245,166,35,.15); color:var(--amber-lt); }
+.action-stop     { background:rgba(232,64,64,.15); color:var(--red); }
+.action-connect  { background:rgba(122,128,144,.15); color:var(--muted); }
+.dur-cell { color:var(--muted); }
+.deg-cell { color:var(--faint); font-size:11px; }
+
+/* ── Execution results ──────────────────────────────────────────────────── */
+.progress-bar-wrap { flex:1; height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; margin-left:8px; }
+.progress-bar { height:100%; background:var(--amber); border-radius:2px; width:0%; transition:width .3s; }
+.results-list { padding:8px 0; }
+.result-row { display:flex; align-items:flex-start; gap:12px; padding:7px 16px; border-bottom:1px solid var(--border); animation:fadeIn .25s ease; }
+.result-row:last-child { border-bottom:none; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.result-icon { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; margin-top:1px; }
+.result-icon.ok        { background:rgba(61,220,132,.2); color:var(--green); }
+.result-icon.fail      { background:rgba(232,64,64,.2);  color:var(--red); }
+.result-icon.emergency { background:rgba(232,64,64,.35); color:var(--red); }
+.result-body { flex:1; min-width:0; }
+.result-action { font-family:var(--mono); font-size:12px; font-weight:500; color:var(--text); margin-bottom:2px; }
+.result-msg    { font-family:var(--mono); font-size:11px; color:var(--muted); word-break:break-word; }
+.result-idx    { font-family:var(--mono); font-size:11px; color:var(--faint); min-width:24px; text-align:right; }
+.summary-banner { display:flex; align-items:center; gap:14px; padding:12px 16px; border-top:1px solid var(--border); font-family:var(--mono); font-size:12px; }
+.summary-banner.ok      { background:rgba(61,220,132,.06); color:var(--green); }
+.summary-banner.fail    { background:rgba(232,64,64,.06);  color:var(--red); }
+.summary-banner.stopped { background:rgba(245,166,35,.06); color:var(--amber); }
+.empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:12px; color:var(--faint); padding:60px 20px; text-align:center; }
+.empty-icon { font-size:40px; opacity:.3; }
+.empty-text { font-family:var(--cond); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--faint); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="layout {% if vision_enabled %}has-vision{% else %}no-vision{% endif %}" id="layout">
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">
+    <img src="/static/strands-logo.png"   alt="Strands"   onerror="this.style.display='none'">
+    <img src="/static/deepracer-logo.png" alt="DeepRacer" onerror="this.style.display='none'">
+    <span class="header-title">Navigation Planner</span>
+    {% if vision_enabled %}
+    <span class="vision-badge">Vision</span>
+    {% endif %}
+  </div>
+  <div class="header-spacer"></div>
+  <div id="status-dot" class="status-dot"></div>
+  <span id="status-label" class="status-label">Idle</span>
+  <div class="model-badge">{{ model }}</div>
+</header>
+
+<!-- Left sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Physics Limits</div>
+    <div class="physics-grid">
+      <div class="phys-cell"><div class="phys-value">{{ min_turn_radius }}</div><div class="phys-label">Min radius (m)</div></div>
+      <div class="phys-cell"><div class="phys-value">{{ max_corner_speed }}</div><div class="phys-label">Max corner (m/s)</div></div>
+      <div class="phys-cell"><div class="phys-value">{{ max_step_secs }}</div><div class="phys-label">Max step (s)</div></div>
+      <div class="phys-cell"><div class="phys-value">{{ max_plan_steps }}</div><div class="phys-label">Max steps</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Rotation Calibration</div>
+    <div class="cal-row"><span class="cal-lhs">1.5 s</span><span class="cal-rhs">≈ 90° Δ</span></div>
+    <div class="cal-row"><span class="cal-lhs">3.0 s</span><span class="cal-rhs">≈ 180° Δ</span></div>
+    <div class="cal-row"><span class="cal-lhs">6.0 s</span><span class="cal-rhs">≈ 360° Δ</span></div>
+    <div class="cal-row"><span class="cal-lhs">formula</span><span class="cal-rhs">Δ=(s/1.5)×90°</span></div>
+  </div>
+
+  {% if vision_enabled %}
+  <div class="sidebar-section">
+    <div class="sidebar-label">Vision Config</div>
+    <div class="cal-row"><span class="cal-lhs">model</span><span class="cal-rhs" style="font-size:10px">nova-pro</span></div>
+    <div class="cal-row"><span class="cal-lhs">timeout</span><span class="cal-rhs">{{ vision_timeout }}s</span></div>
+    <div class="cal-row"><span class="cal-lhs">max replans</span><span class="cal-rhs">{{ max_replans }}</span></div>
+  </div>
+  {% endif %}
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Quick Prompts</div>
+    {% for p in quick_prompts %}
+    <button class="prompt-btn" onclick="fillPrompt(this)">{{ p }}</button>
+    {% endfor %}
+  </div>
+</aside>
+
+<!-- Main area -->
+<main class="main">
+  <div class="input-section">
+    <div class="input-row">
+      <input id="instruction" class="instruction-input" type="text"
+        placeholder="Describe a manoeuvre — e.g. drive a figure-8, slalom through 4 cones…"
+        autocomplete="off"/>
+      <button class="btn btn-plan" id="btn-plan" onclick="getPlan()">Get Plan</button>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-execute" id="btn-execute" onclick="executePlan()" disabled>Execute</button>
+      <button class="btn btn-cancel"  id="btn-cancel"  onclick="cancelPlan()"  disabled>Cancel</button>
+      <button class="btn btn-stop"    id="btn-stop"    onclick="emergencyStop()">Stop</button>
+    </div>
+    <div id="warnings" class="warning-row" style="display:none"></div>
+  </div>
+  <div class="content" id="content">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🏎</div>
+      <div class="empty-text">Enter a driving instruction above</div>
+    </div>
+  </div>
+</main>
+
+{% if vision_enabled %}
+<!-- Camera panel (Phase 3 only) -->
+<div class="camera">
+  <div class="camera-section">
+    <div class="sidebar-label">Camera Feed</div>
+    <div class="cam-indicator">
+      <div class="cam-dot" id="cam-dot"></div>
+      <span class="cam-label" id="cam-label">Connecting…</span>
+      <span class="cam-frames" id="cam-frames"></span>
+      <button type="button" class="btn-reconnect" id="btn-cam-reconnect" title="Restart camera stream" onclick="reconnectCamera()">Reconnect</button>
+    </div>
+    <div class="cam-error" id="cam-error" style="display:none"></div>
+    <div class="camera-feed-wrap">
+      <img id="cam-img" src="/frame" alt="Camera" onerror="this.style.opacity=0"/>
+      <div class="camera-no-feed" id="cam-no-feed">
+        <div>No frame</div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar-section" style="padding-bottom:8px">
+    <div class="sidebar-label">Vision Log</div>
+  </div>
+  <div class="vision-log" id="vision-log">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--faint);padding:4px 0">
+      Vision decisions appear here during execution.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Right sidebar — pattern library -->
+<aside class="sidebar sidebar-right">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Pattern Library</div>
+    {% for name, desc in patterns %}
+    <div class="pattern-row">
+      <span class="pattern-name">{{ name }}</span>
+      <span class="pattern-desc">{{ desc }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</aside>
+
+</div><!-- .layout -->
+
+<script type="application/json" id="app-config">{"vision_enabled": {{ vision_enabled | tojson }}}</script>
+<script>
+const VISION_ENABLED = JSON.parse(document.getElementById('app-config').textContent).vision_enabled;
+
+let currentPlan = null;
+let sseSource   = null;
+let totalSteps  = 0;
+let doneSteps   = 0;
+let camTimer         = null;
+let camPollingActive = false;
+let camFrames        = 0;
+
+// ── Status helpers ─────────────────────────────────────────────────────────
+function setStatus(cls, label) {
+  document.getElementById('status-dot').className   = 'status-dot ' + (cls||'');
+  document.getElementById('status-label').textContent = label;
+}
+function setButtons(state) {
+  document.getElementById('btn-plan').disabled    = state === 'running';
+  document.getElementById('btn-execute').disabled = state !== 'has-plan';
+  document.getElementById('btn-cancel').disabled  = state !== 'has-plan';
+}
+
+function fillPrompt(btn) {
+  document.getElementById('instruction').value = btn.textContent.trim();
+  document.getElementById('instruction').focus();
+}
+
+function deg(secs, action) {
+  if (!['left','right'].includes(action) || secs == null) return '';
+  const d = (secs / 1.5) * 90;
+  return (d % 1 === 0 ? d : d.toFixed(0)) + '°Δ';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function actionCls(a) { return 'action-' + a; }
+
+// ── Camera feed ────────────────────────────────────────────────────────────
+function startCameraPolling() {
+  if (!VISION_ENABLED) return;
+  stopCameraPolling();
+  camPollingActive = true;
+  refreshFrame();  // chain: next request only after this one finishes
+  pollVisionStatus();
+}
+function stopCameraPolling() {
+  camPollingActive = false;
+  if (camTimer) { clearTimeout(camTimer); camTimer = null; }
+}
+async function refreshFrame() {
+  const img = document.getElementById('cam-img');
+  const noFeed = document.getElementById('cam-no-feed');
+  if (!img || !noFeed) return;
+  const t = Date.now();
+  try {
+    const resp = await fetch('/frame?t=' + t);
+    if (!resp.ok) {
+      noFeed.style.display = 'flex';
+      if (camPollingActive) camTimer = setTimeout(refreshFrame, 500);
+      return;
+    }
+    const isPlaceholder = resp.headers.get('X-Frame-Placeholder') === 'true';
+    const buf = await resp.arrayBuffer();
+    if (buf.byteLength === 0) {
+      noFeed.style.display = 'flex';
+      if (camPollingActive) camTimer = setTimeout(refreshFrame, 500);
+      return;
+    }
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const chunk = 8192;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    const dataUrl = 'data:image/jpeg;base64,' + btoa(binary);
+
+    img.onload = function() {
+      img.style.opacity = 1;
+      if (isPlaceholder) {
+        noFeed.style.display = 'flex';
+      } else {
+        noFeed.style.display = 'none';
+        camFrames++;
+      }
+      if (camPollingActive) camTimer = setTimeout(refreshFrame, 150);
+    };
+    img.onerror = function() {
+      noFeed.style.display = 'flex';
+      if (camPollingActive) camTimer = setTimeout(refreshFrame, 500);
+    };
+    img.src = dataUrl;
+  } catch (e) {
+    noFeed.style.display = 'flex';
+    if (camPollingActive) camTimer = setTimeout(refreshFrame, 500);
+  }
+}
+async function pollVisionStatus() {
+  if (!VISION_ENABLED) return;
+  try {
+    const resp = await fetch('/vision_status');
+    const d = await resp.json();
+    const dot = document.getElementById('cam-dot');
+    const lbl = document.getElementById('cam-label');
+    const frm = document.getElementById('cam-frames');
+    const errEl = document.getElementById('cam-error');
+    if (d.running && d.staleness < 2) {
+      dot.className = 'cam-dot live';
+      lbl.textContent = 'Live';
+      if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    } else if (d.running) {
+      dot.className = 'cam-dot stale';
+      lbl.textContent = 'Stale';
+      if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    } else {
+      dot.className = 'cam-dot';
+      lbl.textContent = 'Offline';
+      if (errEl && d.error) { errEl.style.display = 'block'; errEl.textContent = d.error; }
+    }
+    if (d.frames != null) frm.textContent = `${d.frames} frames`;
+  } catch(e) {}
+  setTimeout(pollVisionStatus, 2000);
+}
+function reconnectCamera() {
+  if (!VISION_ENABLED) return;
+  const btn = document.getElementById('btn-cam-reconnect');
+  if (btn) btn.disabled = true;
+  fetch('/camera/reconnect', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        if (data.message && !data.message.includes('already')) pollVisionStatus();
+      }
+    })
+    .finally(() => { const b = document.getElementById('btn-cam-reconnect'); if (b) b.disabled = false; });
+}
+
+// ── Vision log ────────────────────────────────────────────────────────────
+function appendVisionEntry(data) {
+  const log = document.getElementById('vision-log');
+  if (!log) return;
+  // Clear placeholder
+  const placeholder = log.querySelector('div');
+  if (placeholder && placeholder.textContent.includes('decisions appear')) {
+    log.innerHTML = '';
+  }
+
+  const action = data.action || 'continue';
+  const icons  = {'continue':'✓', 'replan':'↺', 'abort':'⚠'};
+  const icon   = icons[action] || '·';
+  const conf   = data.confidence != null ? `${Math.round(data.confidence*100)}%` : '';
+
+  log.insertAdjacentHTML('beforeend', `
+    <div class="vision-entry">
+      <span class="vision-step">${data.step||'?'}</span>
+      <div class="vision-icon ${action}">${icon}</div>
+      <div class="vision-body">
+        <div class="vision-action ${action}">${action.toUpperCase()} ${conf ? `<span class="vision-conf">${conf}</span>` : ''}</div>
+        <div class="vision-reason">${esc(data.reasoning||'')}</div>
+      </div>
+    </div>`);
+  log.scrollTop = log.scrollHeight;
+}
+
+function appendReplanBanner(data) {
+  const log = document.getElementById('vision-log');
+  if (!log) return;
+  log.insertAdjacentHTML('beforeend', `
+    <div class="replan-banner">
+      Replan #${data.count}: "${esc(data.instruction||'')}"  →  ${data.new_steps} steps
+    </div>`);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── Plan display ──────────────────────────────────────────────────────────
+function renderPlan(plan, warnings) {
+  const steps     = plan.steps || [];
+  const pattern   = plan.pattern || '—';
+  const reasoning = (plan._reasoning || '').trim();
+
+  const wBox = document.getElementById('warnings');
+  if (warnings && warnings.length) {
+    wBox.style.display = 'flex';
+    wBox.innerHTML = warnings.map(w => `<div class="warning-pill">⚠ ${esc(w)}</div>`).join('');
+  } else {
+    wBox.style.display = 'none';
+    wBox.innerHTML = '';
+  }
+
+  const rows = steps.map((s, i) => {
+    const a = s.action || '?';
+    const d = s.seconds != null ? s.seconds + 's' : '—';
+    const r = deg(s.seconds, a);
+    return `<tr>
+      <td class="result-idx">${i+1}</td>
+      <td><span class="action-pill ${actionCls(a)}">${a}</span></td>
+      <td class="dur-cell">${d}</td>
+      <td class="deg-cell" title="Heading change (not servo angle)">${r}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('empty-state')?.remove();
+  document.getElementById('plan-card')?.remove();
+  document.getElementById('results-card')?.remove();
+
+  // Clear vision log
+  const vlog = document.getElementById('vision-log');
+  if (vlog) vlog.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--faint);padding:4px 0">Vision decisions appear here during execution.</div>';
+
+  document.getElementById('content').insertAdjacentHTML('afterbegin', `
+    <div class="plan-card" id="plan-card">
+      <div class="card-header">
+        <span class="card-label">Plan</span>
+        <span class="pattern-tag">${esc(pattern)}</span>
+        <span class="step-count-tag">${steps.length} steps</span>
+      </div>
+      ${reasoning ? `<div class="reasoning-block">${esc(reasoning)}</div>` : ''}
+      <table class="steps-table">
+        <thead><tr>
+          <th>#</th><th>Action</th><th>Duration</th>
+          <th title="Car heading change from calibration. Separate from steering servo value.">Heading Δ ⓘ</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`);
+}
+
+// ── Execution results ─────────────────────────────────────────────────────
+function ensureResultsCard(total, pattern) {
+  if (document.getElementById('results-card')) return;
+  document.getElementById('content').insertAdjacentHTML('beforeend', `
+    <div class="results-card" id="results-card">
+      <div class="card-header">
+        <span class="card-label">Execution</span>
+        <span class="pattern-tag">${esc(pattern)}</span>
+        ${VISION_ENABLED ? '<span class="vision-badge" style="font-size:10px">Vision</span>' : ''}
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <span id="progress-label" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0/${total}</span>
+      </div>
+      <div class="results-list" id="results-list"></div>
+    </div>`);
+}
+
+function appendStep(d) {
+  const list = document.getElementById('results-list');
+  if (!list) return;
+  const isEmg = d.emergency;
+  const ok    = d.ok;
+  const icon  = isEmg ? '⚡' : (ok ? '✓' : '✗');
+  const cls   = isEmg ? 'emergency' : (ok ? 'ok' : 'fail');
+  const durStr= d.seconds != null ? ` ${d.seconds}s` : '';
+  const degStr= deg(d.seconds, d.action);
+
+  list.insertAdjacentHTML('beforeend', `
+    <div class="result-row">
+      <span class="result-idx">${d.index}</span>
+      <div class="result-icon ${cls}">${icon}</div>
+      <div class="result-body">
+        <div class="result-action">
+          <span class="action-pill ${actionCls(d.action)}">${d.action}</span>
+          ${durStr}
+          ${degStr ? `<span style="color:var(--faint);font-size:10px;margin-left:4px" title="Heading change">${degStr}</span>` : ''}
+        </div>
+        <div class="result-msg">${esc(d.message)}</div>
+      </div>
+    </div>`);
+
+  list.scrollTop = list.scrollHeight;
+  doneSteps++;
+  const pct = totalSteps > 0 ? (doneSteps / totalSteps) * 100 : 0;
+  const bar = document.getElementById('progress-bar');
+  const lbl = document.getElementById('progress-label');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = `${doneSteps}/${totalSteps}`;
+}
+
+function appendSummary(type, text) {
+  const card = document.getElementById('results-card');
+  if (!card) return;
+  const icon = type === 'ok' ? '✅' : type === 'stopped' ? '🛑' : '❌';
+  card.insertAdjacentHTML('beforeend',
+    `<div class="summary-banner ${type}"><span>${icon}</span> ${esc(text)}</div>`);
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function getPlan() {
+  const instruction = document.getElementById('instruction').value.trim();
+  if (!instruction) return;
+  setStatus('planning', 'Planning…');
+  setButtons('planning');
+  currentPlan = null;
+  try {
+    const res  = await fetch('/plan', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({instruction}),
+    });
+    const data = await res.json();
+    if (!data.ok) { setStatus('error','Error'); setButtons('idle'); alert('Planning failed:\n'+data.error); return; }
+    currentPlan = data.plan;
+    renderPlan(data.plan, data.warnings);
+    setStatus('', 'Plan ready');
+    setButtons('has-plan');
+  } catch(err) {
+    setStatus('error','Error'); setButtons('idle');
+    alert('Request failed: ' + err.message);
+  }
+}
+
+function cancelPlan() {
+  currentPlan = null;
+  setButtons('idle'); setStatus('','Idle');
+  document.getElementById('plan-card')?.remove();
+  document.getElementById('warnings').style.display='none';
+}
+
+async function executePlan() {
+  if (!currentPlan) return;
+  totalSteps = (currentPlan.steps||[]).length;
+  doneSteps  = 0;
+  setStatus('running','Executing…');
+  setButtons('running');
+  document.getElementById('results-card')?.remove();
+
+  closeSse();
+  sseSource = new EventSource('/stream');
+
+  sseSource.addEventListener('start', e => {
+    const d = JSON.parse(e.data);
+    ensureResultsCard(d.total, d.pattern);
+    if (VISION_ENABLED) startCameraPolling();
+  });
+  sseSource.addEventListener('step', e => {
+    appendStep(JSON.parse(e.data));
+  });
+  sseSource.addEventListener('vision', e => {
+    appendVisionEntry(JSON.parse(e.data));
+  });
+  sseSource.addEventListener('replan', e => {
+    appendReplanBanner(JSON.parse(e.data));
+  });
+  sseSource.addEventListener('vision_abort', e => {
+    const d = JSON.parse(e.data);
+    appendVisionEntry({step:'!', action:'abort', reasoning: d.reasoning, confidence:1.0});
+  });
+  sseSource.addEventListener('done', e => {
+    const d = JSON.parse(e.data);
+    let txt = `Complete — ${d.ok_count} step(s) ok`;
+    if (d.fail_count) txt += `, ${d.fail_count} failed`;
+    if (d.replan_count) txt += `, ${d.replan_count} replan(s)`;
+    if (d.abort_reason) txt = `Aborted: ${d.abort_reason}`;
+    const type = d.fail_count || d.abort_reason ? 'fail' : 'ok';
+    appendSummary(type, txt);
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.background = type === 'ok' ? 'var(--green)' : 'var(--red)';
+    setStatus(type === 'ok' ? 'done' : 'error', type === 'ok' ? 'Done' : 'Failed');
+    setButtons('idle');
+    closeSse();
+    stopCameraPolling();
+  });
+  sseSource.addEventListener('stopped', e => {
+    const d = JSON.parse(e.data);
+    appendSummary('stopped', d.message || 'Stopped.');
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.background = 'var(--amber)';
+    setStatus('','Stopped'); setButtons('idle');
+    closeSse(); stopCameraPolling();
+  });
+  sseSource.onerror = () => {
+    closeSse(); setStatus('error','Connection lost'); setButtons('idle'); stopCameraPolling();
+  };
+
+  try {
+    const res  = await fetch('/execute', {method:'POST'});
+    const data = await res.json();
+    if (!data.ok) {
+      alert('Execute failed: '+data.error);
+      setStatus('error','Error'); setButtons('has-plan');
+      closeSse();
+    }
+  } catch(err) {
+    alert('Request failed: '+err.message);
+    setStatus('error','Error'); setButtons('idle'); closeSse();
+  }
+}
+
+async function emergencyStop() {
+  try { await fetch('/stop', {method:'POST'}); } catch(e){}
+  closeSse(); stopCameraPolling();
+  setStatus('','Stopped'); setButtons('idle');
+}
+
+function closeSse() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+}
+
+document.getElementById('instruction')
+  .addEventListener('keydown', e => { if(e.key==='Enter') getPlan(); });
+
+// Start camera polling if vision enabled and page loads
+if (VISION_ENABLED) {
+  startCameraPolling();
+}
+</script>
+</body>
+</html>
