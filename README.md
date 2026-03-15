@@ -228,7 +228,33 @@ move forward, avoid any obstacles you see
 ```
 
 ---
-
+## Extending to Other Platforms
+ 
+> ⚠️ **Unverified** — the use case files below are architectural demonstrations only. They have not been tested on physical hardware. They exist to illustrate how the common engine (Nova Lite planner, Nova Pro vision, MJPEG stream, SSE dashboard) can be adapted to any robot by swapping only the tool layer.
+ 
+The `use_cases/` folder contains a common engine and 13 hardware tool layer files — one per platform. Every file implements the same 9-function interface (`connect`, `move_forward`, `move_backward`, `turn_left`, `turn_right`, `stop`, `is_error`, `reset_client`, `activate_camera`) so the Phase 3 execution engine runs unchanged.
+ 
+| Platform | File | API |
+|---|---|---|
+| AWS DeepRacer ✅ | `deepracer.py` | aws-deepracer-control-v2 HTTP |
+| Warehouse AMR | `warehouse_robot.py` | ROS2 `/cmd_vel` rosbridge |
+| MAVLink Drone | `drone.py` | DroneKit + MAVLink |
+| 6-DOF Robot Arm | `robot_arm.py` | MoveIt2 + rosbridge |
+| Pipeline Crawler | `pipeline_crawler.py` | TCP JSON |
+| Autonomous Lawnmower | `lawnmower.py` | ROS2 `/cmd_vel` rosbridge |
+| Hospital Delivery Cart | `hospital_cart.py` | ROS2 `/cmd_vel` rosbridge |
+| iRobot Roomba / Create3 | `roomba.py` | ROS2 `/cmd_vel` rosbridge |
+| Camera Dolly / Slider | `camera_dolly.py` | TCP JSON motor controller |
+| Solar Farm Inspector | `solar_inspection.py` | ROS2 `/cmd_vel` rosbridge |
+| Autonomous Boat | `boat.py` | MAVLink ArduPilot Rover |
+| Outdoor Rover | `rover.py` | ROS2 `/cmd_vel` rosbridge |
+| Underwater ROV | `underwater_rov.py` | MAVLink ArduSub |
+ 
+To run with any platform: `USE_CASE=drone python use_cases/common/main.py --vision`
+ 
+📁 [`use_cases/`](./use_cases/) · 📖 [Use Cases README](./use_cases/README.md)
+ 
+---
 ## Author
 
 **Vivek Raja P S**

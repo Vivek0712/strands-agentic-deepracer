@@ -1,0 +1,12 @@
+# Phase 3 — Vision + AgentTool Navigation Planner
+# No new dependencies added over Phase 2.
+# boto3 already covers both the text planner (Nova Lite) and the
+# vision assessor (Nova Pro) via the same Converse API.
+
+strands-agents
+aws-deepracer-control-v2
+python-dotenv
+flask
+boto3
+botocore
+requests
