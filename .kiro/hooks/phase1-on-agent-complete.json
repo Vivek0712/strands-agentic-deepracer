@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Post-implementation review",
+  "description": "After an agent execution completes on Phase 1 files, verify the changes are consistent with all specs and steering rules.",
+  "trigger": {
+    "type": "agent_complete"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "An agent execution just completed on Phase 1 files. Please do a quick consistency check on any files that were modified:\n\n1. If deepracer_tools.py was changed: confirm all @tool decorators are present and stop_car() is still in a finally block.\n2. If agent.py was changed: confirm tools=[] in create_planner() and PLANNER_PROMPT is still a module-level constant.\n3. If app_ui.py was changed: confirm debug=False and the planner singleton pattern is intact.\n4. If main.py was changed: confirm the confirmation gate still requires 'y'/'yes' explicitly.\n5. If templates/index.html was changed: confirm the Execute button is still guarded by currentPlan check.\n6. If any .env or .env.example was changed: confirm no real credentials were introduced.\n\nOnly report items that actually changed. If nothing relevant changed, say so briefly."
+  }
+}

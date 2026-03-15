@@ -1,0 +1,12 @@
+{
+  "name": "phase3-new-session-checklist",
+  "description": "Print Phase 3 orientation checklist at the start of a new session",
+  "enabled": true,
+  "trigger": {
+    "type": "new_session"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "New session started on phase-3-adaptive-visual-navigation. Quick orientation:\n\nKEY FILES:\n- camera_stream.py — background MJPEG consumer, SOI/EOI marker extraction\n- vision_assessor.py — Nova Pro Converse API wrapper, VisionDecision dataclass\n- camera_policy.py — CameraPolicy(NavigationPolicy), create_camera_policy() factory\n- deepracer_agent_tool.py — vision loop: _should_assess(), _assess_and_decide(), _execute_approved_plan()\n- agent.py — Phase 2 planning + Phase 3 vision constants (VISION_ASSESS_TIMEOUT, MAX_REPLANS)\n- app_ui.py — /frame, /vision_status, /reinit, /camera/reconnect routes\n\nPHASE 3 ENV VARS:\n- VISION_MODEL (default: us.amazon.nova-pro-v1:0)\n- MAX_REPLANS (default: 3)\n- VISION_TIMEOUT (default: 4.0 s)\n- VISION_MIN_STEP (default: 0.5 s)\n\nRUNNING:\n- python main.py --vision   (Phase 3 with camera)\n- python main.py --mock     (offline, no vision)\n- python app_ui.py          (web UI)\n\nSAFETY: Camera is advisory — failures never abort execution. Vision timeout always returns 'continue'."
+  }
+}

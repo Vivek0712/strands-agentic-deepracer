@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Validate deepracer_tools.py on save",
+  "description": "When deepracer_tools.py is saved, check that all @tool decorators are present, stop_car() is in a finally block, and no tool raises exceptions to callers.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/deepracer_tools.py"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/deepracer_tools.py was just saved. Please review it and verify:\n1. All 6 public functions (deepracer_connect, deepracer_move_forward, deepracer_move_backward, deepracer_turn_left, deepracer_turn_right, deepracer_stop) have the @tool decorator.\n2. _move_for_duration() calls client.stop_car() inside a finally block.\n3. No tool function raises an exception — all errors are returned as strings prefixed with 'Error '.\n4. _get_client() raises RuntimeError if DEEPRACER_PASSWORD is not set.\n5. Throttle signs follow the convention: forward=-FWD_THROTTLE, backward=+FWD_THROTTLE, turns use -TURN_THROTTLE.\nReport any violations found."
+  }
+}

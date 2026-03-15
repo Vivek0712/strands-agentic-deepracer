@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-camera-stream",
+  "description": "Review camera_stream.py for safety and correctness when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/camera_stream.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "camera_stream.py was just saved. Review it for:\n1. _stream_loop() catches ALL exceptions from _consume_stream() — reconnect loop must never crash\n2. get_latest_frame() acquires _lock briefly — must not hold lock during HTTP I/O\n3. _stop_event checked at top of each chunk iteration in _consume_stream()\n4. JPEG extraction uses SOI (0xFF 0xD8) and EOI (0xFF 0xD9) markers — not multipart boundary parsing\n5. _get_response() handles Response object, str URL, and dict with url/stream_url/video_url key\n6. Thread is daemon=True\n7. No side effects at import time — no connections opened in module scope\nReport any violations."
+  }
+}

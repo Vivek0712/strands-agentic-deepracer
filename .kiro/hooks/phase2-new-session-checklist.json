@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: New session startup checklist",
+  "description": "On new session, remind about Phase 2 key invariants and safety rules.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "agentEvent",
+    "event": "sessionStart"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "New session started for phase-2-strands-robots-deepracer. Key invariants to keep in mind:\n\n**SAFETY (non-negotiable)**\n- stop_car() MUST be in finally block — NO return inside finally\n- MAX_STEP_SECONDS=5.0 hard cap — validate_plan() rejects, execute_step() clamps\n- stop_on_failure=True is the default — failed step triggers emergency deepracer_stop()\n- Every plan MUST end with {\"action\": \"stop\"}\n- DEEPRACER_PASSWORD must never appear in logs or error messages\n\n**ARCHITECTURE**\n- is_error() in deepracer_tools.py is the ONLY error detector — never duplicate inline\n- Policy abstraction: NovaPolicy / MockPolicy / ReplayPolicy via create_policy()\n- DeepRacerTool(AgentTool) — 4 actions: execute / start / status / stop\n- TaskStatus state machine: IDLE→CONNECTING→PLANNING→RUNNING→COMPLETED/STOPPED/ERROR\n\n**ROTATION CALIBRATION**\n- 1.5 s ≈ 90° — do NOT change without re-measuring on physical car\n- Changing STEER_ANGLE or TURN_THROTTLE invalidates calibration\n- _check_rotation() warns (never errors) on >5° deviation\n\n**OFFLINE DEVELOPMENT**\n- python main.py --mock — no Bedrock, no hardware needed\n\nWhat would you like to work on?"
+  }
+}

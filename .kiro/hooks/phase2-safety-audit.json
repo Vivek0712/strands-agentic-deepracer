@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Full safety audit",
+  "description": "Manual trigger — comprehensive safety audit across all Phase 2 files.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Run a comprehensive Phase 2 safety audit across all files in phase-2-strands-robots-deepracer. Check every item:\n\n**deepracer_tools.py**\n- [ ] finally block in _move_for_duration() has NO return statement\n- [ ] stop_warning declared before try, checked after try/finally\n- [ ] is_error() checks both startswith('error') and 'stop_car failed'\n- [ ] _get_client() raises RuntimeError when PASSWORD is empty\n- [ ] PASSWORD never in any error message or log\n\n**agent.py**\n- [ ] validate_plan() rejects seconds > MAX_STEP_SECONDS with split message\n- [ ] validate_plan() rejects last step != 'stop'\n- [ ] execute_plan() and execute_plan_full() both default stop_on_failure=True\n- [ ] Emergency stop appended before break on failure\n- [ ] MAX_STEP_SECONDS loaded from env var with default 5.0\n\n**deepracer_agent_tool.py**\n- [ ] _execute_task_async checks shutdown_event at start of every step iteration\n- [ ] _action_stop() calls deepracer_stop() regardless of state\n- [ ] cleanup() order: shutdown_event → _action_stop() → executor.shutdown() → reset_client()\n- [ ] __del__ wraps cleanup() in try/except\n\n**main.py**\n- [ ] Confirmation gate requires 'y' or 'yes' — nothing else\n- [ ] validate_plan() called even in mock mode\n\n**app_ui.py**\n- [ ] /stop sets _stop_flag AND calls deepracer_stop()\n- [ ] is_error() NOT imported or used\n\nReport pass/fail for each item and flag any violations."
+  }
+}

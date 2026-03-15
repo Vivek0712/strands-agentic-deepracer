@@ -1,0 +1,8 @@
+{
+  "name": "Use Cases: New session checklist",
+  "event": "onNewSession",
+  "action": {
+    "type": "send_message",
+    "message": "New session started in the use_cases workspace. Quick orientation:\n\n## Architecture\n- Two layers: use_cases/common/ (shared engine) + use_cases/{name}.py (per-robot tools)\n- USE_CASE env var selects which tool file to load (default: deepracer)\n- common/base_tools.py defines the interface: 9 functions + 4 physics constants\n- load_tools() + validate_tools() are the entry points — never import use case files directly\n\n## Running\n- USE_CASE=drone python common/main.py --vision\n- USE_CASE=roomba python common/app_ui.py\n- USE_CASE=boat python common/main.py --mock\n\n## Safety Rules (non-negotiable)\n- All tool functions must catch exceptions and return error strings — never raise\n- stop() must be callable at any time, even before connect()\n- Credentials must never appear in return strings or logs\n- Physics constants must reflect actual hardware — do not change without re-measuring\n\n## Before editing any use case file\n- Check validate_tools() passes after your changes\n- Confirm stop() still works without a prior connect()\n- Confirm error strings start with 'Error' (capital E)\n\nWhat would you like to work on?"
+  }
+}

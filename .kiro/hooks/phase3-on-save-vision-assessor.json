@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-vision-assessor",
+  "description": "Review vision_assessor.py for safety and API correctness when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/vision_assessor.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "vision_assessor.py was just saved. Review it for:\n1. assess() wraps _call_nova() in try/except — returns VisionDecision.safe_continue() on ANY exception, never raises\n2. Bedrock Converse API: image block uses raw bytes in source[\"bytes\"] — NOT base64-encoded string\n3. Image block comes BEFORE text block in content list\n4. Response text extracted from response[\"output\"][\"message\"][\"content\"][0][\"text\"]\n5. _parse_decision() strips markdown fences before JSON parsing\n6. Unknown action defaults to \"continue\" — never raises on unexpected action value\n7. confidence clamped to [0.0, 1.0]\n8. reasoning capped at 200 chars\n9. boto3 config: connect_timeout=10, read_timeout=30, retries max_attempts=1\nReport any violations."
+  }
+}

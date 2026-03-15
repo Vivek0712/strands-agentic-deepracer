@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Upgrade or swap Bedrock model",
+  "description": "Manual hook — guide for switching the planner to a different Amazon Bedrock model.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the 'Upgrade/Swap Bedrock Model' guide for Phase 1.\n\nTo change the model used by the navigation planner:\n\n1. CHOOSE A MODEL: Common options for JSON-output tasks:\n   - Nova Lite (default, fast, cheap): us.amazon.nova-lite-v1:0\n   - Nova Pro (more capable): us.amazon.nova-pro-v1:0\n   - Claude Haiku (fast): anthropic.claude-3-haiku-20240307-v1:0\n   - Claude Sonnet: anthropic.claude-3-5-sonnet-20241022-v2:0\n\n2. UPDATE .env: Set MODEL=<new-model-id> in phase-1-agentic-navigation-planner/.env\n\n3. VERIFY REGION: Confirm the model is available in your AWS_REGION. Cross-region inference profiles (us.*) require us-east-1 or us-west-2.\n\n4. TEST: Run python main.py and submit 'Move forward 2 seconds' — confirm the plan is still valid JSON with a 'steps' array.\n\n5. PROMPT TUNING: If the new model wraps output in markdown fences despite the prompt, the fence-stripping logic in plan_navigation() already handles this.\n\n6. NO CODE CHANGES NEEDED: The model is fully configurable via .env — no source code changes required.\n\nWhat model would you like to switch to?"
+  }
+}

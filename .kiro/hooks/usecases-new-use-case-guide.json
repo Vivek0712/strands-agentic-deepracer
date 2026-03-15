@@ -1,0 +1,8 @@
+{
+  "name": "Use Cases: New use case guide (manual)",
+  "event": "manual",
+  "action": {
+    "type": "send_message",
+    "message": "Guide me through adding a new use case to use_cases/.\n\nPlease:\n1. Ask me for the robot name (will become the filename, e.g. 'my_robot' → use_cases/my_robot.py)\n2. Ask me for the API type: HTTP REST / MAVLink+DroneKit / ROS2 rosbridge /cmd_vel / TCP JSON / other\n3. Ask me for the connection details (IP, port, credentials env var names)\n4. Ask me for the physics: forward speed (m/s), turn type (in-place yaw / Ackermann / differential thrust / constrained), approximate turn rate\n5. Ask me for the camera situation: no camera / always-on stream / needs activation\n6. Generate the complete use_cases/{name}.py file using the minimal template from usecases-adding-new.md, filled in with my answers\n7. Remind me to: add a .env entry, run validate_tools(), add a row to use_cases/README.md, test with --mock first\n\nStart by asking for the robot name."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-main",
+  "description": "Review Phase 3 main.py for correctness when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/main.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Phase 3 main.py was just saved. Review it for:\n1. --vision flag creates CameraPolicy via create_camera_policy() — not NovaPolicy directly\n2. --mock flag uses MockPolicy (no has_vision) — vision loop is NOT active in mock mode\n3. Vision execution uses DeepRacerTool with event_callback for real-time vision event printing\n4. asyncio.run(tool._execute_task_async(user_input)) used for vision execution\n5. camera_policy.cleanup() called in finally block on exit\n6. Confirmation gate: user must type 'y' or 'yes' — any other input cancels\n7. print_results() accepts optional vision_events list for vision log display\n8. Vision events printed in real time via _callback (not just at end)\nReport any violations."
+  }
+}

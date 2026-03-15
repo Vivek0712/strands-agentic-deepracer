@@ -1,0 +1,9 @@
+{
+  "name": "Use Cases: Review base_tools.py on save",
+  "event": "onFileSave",
+  "filePattern": "use_cases/common/base_tools.py",
+  "action": {
+    "type": "send_message",
+    "message": "base_tools.py was just saved. Please review it against the interface contract:\n\n1. REQUIRED_FUNCTIONS tuple — confirm it contains exactly: connect, move_forward, move_backward, turn_left, turn_right, stop, is_error, reset_client, activate_camera (9 items)\n2. REQUIRED_PHYSICS tuple — confirm it contains exactly: PHYSICS_MIN_TURN_RADIUS_M, PHYSICS_MAX_CORNER_SPEED, PHYSICS_FWD_SPEED_MS, PHYSICS_TURN_SPEED_MS (4 items)\n3. load_tools() — confirm it searches use_cases/ first, then parent; raises ImportError (not returns None) if file not found; registers in sys.modules\n4. validate_tools() — confirm it checks REQUIRED_FUNCTIONS + REQUIRED_PHYSICS; returns list[str]; never raises\n5. RobotTools Protocol — confirm @runtime_checkable is present; all 9 functions and 4 constants declared as protocol members\n\nReport any issues found."
+  }
+}

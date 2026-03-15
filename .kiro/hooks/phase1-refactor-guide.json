@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Refactoring guide",
+  "description": "Manual hook — safe refactoring patterns for Phase 1 code.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the Phase 1 Refactoring Guide.\n\n## Safe Refactors\nThese changes are safe and won't break anything:\n- Renaming internal helper functions (_get_client, _ensure_motors_ready, _move_for_duration) — update all call sites\n- Extracting PLANNER_PROMPT sections into named sub-strings then joining — keep the final string identical\n- Adding type annotations to existing functions\n- Adding logging (use Python logging module, never print passwords)\n- Extracting the fence-stripping logic in plan_navigation() into a helper function\n\n## Risky Refactors (require full test after)\n- Changing the @tool function signatures — Strands uses type hints for schema generation\n- Changing PLANNER_PROMPT content — always test with 'Move forward 2 seconds' and 'Do a full circle' after\n- Changing the execute_step() dispatch table — test all 6 actions\n- Changing the Flask route paths — update frontend fetch URLs too\n- Changing the execute results summary shape — update frontend result rendering\n\n## Never Refactor\n- Remove the finally: stop_car() block in _move_for_duration()\n- Remove the confirmation gate in main.py or index.html\n- Change tools=[] to include tool functions in create_planner()\n- Change _get_client() to return an error string instead of raising RuntimeError for missing password\n- Move .env loading out of module level (it must run before constants are set)\n\nWhat refactoring are you planning?"
+  }
+}

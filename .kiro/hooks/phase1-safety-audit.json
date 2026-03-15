@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Full safety audit",
+  "description": "Manual hook — run a comprehensive safety audit across all Phase 1 source files.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "Please perform a full safety audit of all files in phase-1-agentic-navigation-planner/. Check every item:\n\n## Physical Safety\n1. deepracer_tools.py: Is client.stop_car() called inside a finally block in _move_for_duration()?\n2. deepracer_tools.py: Does every motion tool route through _move_for_duration()?\n3. agent.py: Does execute_plan() iterate ALL steps without short-circuiting?\n4. agent.py: Does PLANNER_PROMPT specify 1.0–3.0 second duration range?\n5. agent.py: Does PLANNER_PROMPT include a safety fallback to a single 'stop' step?\n\n## Confirmation Gate\n6. main.py: Does the confirmation prompt require exactly 'y' or 'yes' to proceed?\n7. app_ui.py: Is the plan returned to the browser before /api/execute can be called?\n8. templates/index.html: Is the Execute button guarded by 'if (!currentPlan) return'?\n\n## Credentials\n9. deepracer_tools.py: Does _get_client() raise RuntimeError (not return error string) when DEEPRACER_PASSWORD is unset?\n10. Across all files: Does DEEPRACER_PASSWORD appear in any log, print, or error message string?\n11. .gitignore: Is .env listed?\n\n## Error Propagation\n12. deepracer_tools.py: Do all @tool functions return strings (never raise) except _get_client()?\n13. app_ui.py: Are all exceptions caught and returned as JSON error responses?\n14. templates/index.html: Are fetch errors caught and shown in the result box?\n\nReport each item as PASS or FAIL with the file and line reference."
+  }
+}

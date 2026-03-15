@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-requirements-change",
+  "description": "Update Phase 3 specs when requirements files change",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": ".kiro/specs/phase3-*/requirements.md"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "A Phase 3 requirements.md was just updated. Review the corresponding tasks.md and check:\n1. Every new FR has at least one corresponding task\n2. Every task references a specific FR number\n3. Safety-critical FRs (vision timeout, abort handling, replan validation) have explicit tasks\n4. Tasks are actionable and testable — not vague\n5. No tasks reference Phase 2 behaviour that hasn't changed\nSuggest any missing tasks."
+  }
+}

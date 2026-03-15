@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Validate agent.py on save",
+  "description": "When agent.py is saved, verify the planner prompt integrity, JSON parsing robustness, and execute_plan non-short-circuit behaviour.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/agent.py"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/agent.py was just saved. Please review it and verify:\n1. create_planner() passes tools=[] to the Agent constructor.\n2. PLANNER_PROMPT is a module-level constant (not inlined in create_planner).\n3. PLANNER_PROMPT lists all 6 allowed actions: connect, forward, backward, left, right, stop.\n4. PLANNER_PROMPT specifies that 'stop' and 'connect' must NOT include a 'seconds' field.\n5. plan_navigation() strips markdown fences before json.loads().\n6. plan_navigation() raises ValueError if 'steps' is missing or not a list.\n7. execute_step() lowercases the action before dispatch.\n8. execute_step() defaults seconds to 2.0 for motion actions when missing or unparseable.\n9. execute_plan() iterates ALL steps without short-circuiting on errors.\n10. execute_plan() contains no print() statements.\nReport any violations found."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Requirements.txt change handler",
+  "description": "When requirements.txt changes in phase-2, check for dependency compatibility.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/requirements.txt"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "requirements.txt changed in phase-2-strands-robots-deepracer. Please review the changes and check:\n\n**Core dependencies that must remain**\n- `strands-agents` — provides Agent, AgentTool, @tool decorator\n- `aws-deepracer-control-v2` — DeepRacer HTTP API client\n- `python-dotenv` — .env loading\n- `flask` — web UI server\n- `boto3` or `botocore` — Bedrock API access (may be transitive via strands-agents)\n\n**Compatibility concerns**\n- `strands-agents` version: AgentTool and ToolResultEvent APIs must match deepracer_agent_tool.py imports\n- `aws-deepracer-control-v2` version: Client.move(), Client.stop_car(), Client.show_vehicle_info() must exist\n- `flask` version: SSE via Response + stream_with_context must work\n\n**After any dependency change**\n1. Run `pip install -r requirements.txt` in a fresh venv\n2. Run `python main.py --mock` to verify imports work\n3. Check that `from strands.tools.tools import AgentTool` still resolves\n4. Check that `from strands.types._events import ToolResultEvent` still resolves\n5. Check that `from strands.types.tools import ToolSpec, ToolUse` still resolves\n\n**If strands-agents API changed**\nThe AgentTool interface in deepracer_agent_tool.py may need updating. Key methods: stream(), tool_spec, tool_name, tool_type.\n\nWhat changed in requirements.txt?"
+  }
+}

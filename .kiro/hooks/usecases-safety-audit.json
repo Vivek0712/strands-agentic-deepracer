@@ -1,0 +1,8 @@
+{
+  "name": "Use Cases: Safety audit (manual)",
+  "event": "manual",
+  "action": {
+    "type": "send_message",
+    "message": "Please perform a full safety audit of the use_cases/ tool layer:\n\n## Interface Completeness\n- Run validate_tools(load_tools(name)) for every use case file in use_cases/ (excluding common/)\n- Report any that return a non-empty list\n\n## Emergency Stop Safety\n- For each use case, confirm stop() sends a hardware stop command (zero-velocity, neutral RC, or stop cmd)\n- Confirm stop() catches all exceptions and returns an error string — never raises\n- Confirm stop() is callable before connect() without error\n\n## Error String Convention\n- Confirm every tool function returns strings starting with 'Error' on failure\n- Confirm is_error() in each use case correctly identifies those strings\n- Confirm no tool function raises to the caller\n\n## Credentials\n- Confirm no passwords or API keys appear in any return string or log message across all use case files\n- Confirm each use case calls load_dotenv() at module level\n\n## Physics Constants\n- Confirm PHYSICS_MIN_TURN_RADIUS_M = 0.0 for: drone, boat, roomba, lawnmower, hospital_cart, solar_inspection, rover\n- Confirm PHYSICS_MIN_TURN_RADIUS_M = float('inf') for: pipeline_crawler, camera_dolly\n- Confirm PHYSICS_MIN_TURN_RADIUS_M = 0.28 for: deepracer (Ackermann)\n\n## Connection Caching\n- Confirm each use case caches its connection in a module-level variable\n- Confirm reset_client() clears it and does not raise\n\nReport all findings with file names and line numbers."
+  }
+}

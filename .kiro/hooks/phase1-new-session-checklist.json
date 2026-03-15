@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: New session startup checklist",
+  "description": "On every new chat session in this workspace, remind the agent of the key safety rules and architecture constraints for Phase 1.",
+  "trigger": {
+    "type": "new_session"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "A new session has started for the Phase 1 Agentic Navigation Planner workspace. Before making any changes, keep these non-negotiable rules in mind:\n\n1. SAFETY: client.stop_car() must always be in a finally block after client.move().\n2. SAFETY: Never auto-execute a plan — always require explicit user confirmation (y/yes in CLI, Execute button click in web UI).\n3. SAFETY: DEEPRACER_PASSWORD must never be logged, hardcoded, or included in error messages.\n4. ARCHITECTURE: agent.py has no I/O — all terminal/web I/O stays in main.py and app_ui.py.\n5. ARCHITECTURE: The planner agent uses tools=[] — it only generates JSON plans, never calls tools directly.\n6. ARCHITECTURE: execute_plan() must iterate ALL steps even if one fails (no short-circuiting).\n7. TOOLS: All 6 public functions in deepracer_tools.py must have the @tool decorator.\n8. TOOLS: All tool functions return error strings — they never raise exceptions to callers.\n\nReady to help with Phase 1."
+  }
+}

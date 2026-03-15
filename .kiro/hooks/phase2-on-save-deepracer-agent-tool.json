@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Validate deepracer_agent_tool.py on save",
+  "description": "When deepracer_agent_tool.py is saved, audit TaskStatus state machine, threading model, cleanup(), and stream() entry point.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/deepracer_agent_tool.py"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "deepracer_agent_tool.py was just saved in phase-2-strands-robots-deepracer. Please audit:\n\n1. TASK STATE MACHINE — confirm transitions only go forward: IDLE→CONNECTING→PLANNING→RUNNING→COMPLETED/STOPPED/ERROR. No backward transitions.\n2. SHUTDOWN EVENT — confirm _execute_task_async checks `self._shutdown_event.is_set()` at the START of every step loop iteration (before executing the step).\n3. EMERGENCY STOP — confirm _action_stop() calls deepracer_stop() on hardware regardless of current task state.\n4. CLEANUP ORDER — confirm cleanup() does: (1) _shutdown_event.set(), (2) _action_stop() if RUNNING/PLANNING/CONNECTING, (3) executor.shutdown(wait=True, cancel_futures=True), (4) reset_client().\n5. __del__ — confirm it calls cleanup() inside try/except and never raises.\n6. stream() — confirm it yields exactly ONE ToolResultEvent per call and catches all exceptions.\n7. _action_start() — confirm it guards against already-running task before submitting to executor.\n8. tool_spec — confirm action enum is exactly ['execute', 'start', 'status', 'stop'] and required is ['action'].\n\nReport any violations."
+  }
+}

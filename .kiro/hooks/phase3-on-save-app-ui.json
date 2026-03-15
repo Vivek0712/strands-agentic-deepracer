@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-app-ui",
+  "description": "Review Phase 3 app_ui.py for correctness when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/app_ui.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Phase 3 app_ui.py was just saved. Review it for:\n1. /frame always returns HTTP 200 — never 204 or 404; falls back to _PLACEHOLDER_JPEG\n2. _PLACEHOLDER_JPEG is base64-decoded at module load, not per-request\n3. /vision_status returns enabled, running, frames, staleness, error fields\n4. /reinit calls _init() and updates _init_error\n5. /camera/reconnect checks is_running() before calling start()\n6. _init() called at module load in try/except — does not crash Flask on failure\n7. atexit.register(_cleanup) calls _camera_policy.cleanup() on exit\n8. SSE queue drained before each new /execute call\n9. _event_cb is a named function (not lambda) passed to DeepRacerTool\n10. threaded=True in app.run()\nReport any violations."
+  }
+}

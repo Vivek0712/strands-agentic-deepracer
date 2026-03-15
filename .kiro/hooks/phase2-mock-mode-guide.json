@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Mock mode development guide",
+  "description": "Manual trigger — guide for using mock mode for offline development and testing.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Guide me through using mock mode in phase-2-strands-robots-deepracer for offline development.\n\n**What mock mode does**\n- Bypasses Bedrock entirely — no API calls, no credentials needed\n- Returns a fixed canned plan: [forward(2.0), stop]\n- All REPL functionality works: patterns, physics, confirmation gate, result display\n- Hardware calls still happen (unless you also lack a car — they'll fail gracefully)\n\n**Starting mock mode**\n```bash\ncd phase-2-strands-robots-deepracer\npython main.py --mock\n```\n\n**Using a custom canned plan**\nTo test a specific plan without Bedrock, edit MockPolicy in agent.py temporarily:\n```python\nMockPolicy(canned_plan={\n    '_reasoning': 'Test plan.',\n    'pattern': 'square',\n    'steps': [\n        {'action': 'forward', 'seconds': 2.0},\n        {'action': 'right', 'seconds': 1.5},\n        {'action': 'forward', 'seconds': 2.0},\n        {'action': 'right', 'seconds': 1.5},\n        {'action': 'forward', 'seconds': 2.0},\n        {'action': 'right', 'seconds': 1.5},\n        {'action': 'forward', 'seconds': 2.0},\n        {'action': 'right', 'seconds': 1.5},\n        {'action': 'stop'}\n    ]\n})\n```\n\n**Testing validate_plan() in mock mode**\nvalidate_plan() is always called even in mock mode. To test validation:\n- Set a canned plan with an invalid step (e.g. seconds=6.0) and confirm it's rejected\n- Set a plan without a final stop step and confirm it's rejected\n\n**Testing the full pipeline without hardware**\n- Mock mode + no car = planning works, execution fails gracefully with error messages\n- This is the correct behaviour — errors are surfaced, not silenced\n\n**What mock mode does NOT test**\n- Bedrock API connectivity and model output quality\n- Physical car behaviour and rotation accuracy\n- Network error recovery (reset_client)\n\nWhat aspect of mock mode do you need help with?"
+  }
+}

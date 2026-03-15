@@ -1,0 +1,8 @@
+{
+  "name": "Use Cases: Validate all tool modules (manual)",
+  "event": "manual",
+  "action": {
+    "type": "send_message",
+    "message": "Please validate all use case tool modules in use_cases/.\n\nFor each .py file in use_cases/ (excluding common/ subdirectory):\n1. Call load_tools(name) and validate_tools(module)\n2. Report the result: PASS (empty list) or FAIL (list of missing names)\n3. For any FAIL, show exactly which names are missing and suggest fixes\n\nThen summarise:\n- Total use cases found\n- Total passing\n- Total failing\n- Any use cases listed in README.md that don't have a corresponding .py file\n\nUse the code: from use_cases.common.base_tools import load_tools, validate_tools"
+  }
+}

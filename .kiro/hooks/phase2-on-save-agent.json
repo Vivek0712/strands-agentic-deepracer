@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Validate agent.py on save",
+  "description": "When agent.py is saved, check safety rules, rotation constants, validate_plan() hard errors, and policy abstraction.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/agent.py"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "agent.py was just saved in phase-2-strands-robots-deepracer. Please audit the following:\n\n1. ROTATION CONSTANTS — confirm DEGREES_PER_SECOND=90.0/1.5, SECONDS_PER_DEGREE=1.5/90.0, FULL_ROTATION_SECS=(360.0/90.0)*1.5. No hardcoded 60.0 or 6.0 elsewhere.\n2. validate_plan() HARD ERRORS — confirm all 10 hard-error conditions raise ValueError, especially: seconds > MAX_STEP_SECONDS rejects with 'Split into shorter steps', last step not 'stop' rejects.\n3. FINALLY BUG FIX — confirm execute_plan() and execute_plan_full() both call emergency stop on failure before breaking.\n4. POLICY ABSTRACTION — confirm create_policy() factory handles 'nova', 'mock', 'replay' and raises ValueError for unknown.\n5. PLANNER_PROMPT — confirm it contains all 8 chain-of-thought points, the FULL ROTATION CHECK box, and all 15 named patterns.\n6. SAFETY CAPS — confirm MAX_STEP_SECONDS loaded from DEEPRACER_MAX_STEP_SECS env var with default 5.0.\n7. is_error() — confirm it is imported from deepracer_tools and used in execute_step(), not duplicated.\n\nReport any violations found."
+  }
+}

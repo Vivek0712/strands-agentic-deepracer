@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Validate app_ui.py on save",
+  "description": "When app_ui.py is saved, audit SSE routes, queue management, stop flag, and physics constant imports.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/app_ui.py"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "app_ui.py was just saved in phase-2-strands-robots-deepracer. Please audit:\n\n1. SSE QUEUE DRAIN — confirm /execute drains _sse_queue before starting a new execution (while not empty loop with get_nowait).\n2. STOP FLAG — confirm /execute calls _stop_flag.clear() before spawning thread, and /stop calls _stop_flag.set().\n3. is_error() NOT USED — confirm app_ui.py does NOT import or call is_error(). The ok field must be computed as: `ok = not (message.lower().startswith('error') or is_emergency)`.\n4. PHYSICS IMPORTS — confirm PHYSICS_MIN_TURN_RADIUS_M, PHYSICS_MAX_CORNER_SPEED, PHYSICS_FWD_SPEED_MS, PHYSICS_TURN_SPEED_MS are all imported from deepracer_tools and passed to index.html template.\n5. SSE HEADERS — confirm /stream returns Cache-Control: no-cache and X-Accel-Buffering: no.\n6. HEARTBEAT — confirm /stream yields ': heartbeat\\n\\n' on 15s queue timeout.\n7. STREAM BREAK — confirm /stream breaks after yielding a done or stopped event.\n8. FLASK CONFIG — confirm app.run(debug=True, threaded=True, port=5000).\n9. WARNINGS — confirm /plan uses warnings.catch_warnings(record=True) and returns warnings array.\n\nReport any violations."
+  }
+}

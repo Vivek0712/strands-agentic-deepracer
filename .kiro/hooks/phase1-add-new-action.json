@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: New action implementation guide",
+  "description": "Manual hook — trigger this when you want to add a new movement action to Phase 1. Guides through all the places that need updating.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the 'Add New Action' guide for Phase 1. To add a new movement action (e.g. 'spin', 'diagonal', 'pause'), follow these steps in order:\n\n1. deepracer_tools.py — Add a new @tool decorated function. If it involves motion, route it through _move_for_duration(). Give it a clear docstring.\n\n2. agent.py — Import the new function from deepracer_tools. Add a new dispatch case in execute_step() for the action name (lowercase). Default seconds to 2.0 if it's a motion action.\n\n3. agent.py — Add the new action name to PLANNER_PROMPT's 'Allowed action_name values' list with a description. Specify whether it takes a 'seconds' field.\n\n4. templates/index.html — No changes needed unless the action requires special UI treatment.\n\n5. .kiro/specs/phase1-deepracer-tools/tasks.md — Add a task for the new tool.\n\n6. .kiro/specs/phase1-planner-agent/requirements.md — Update REQ-PLAN-2 and REQ-PLAN-4 to include the new action.\n\nSafety check: if the new action involves movement, confirm stop_car() is in a finally block and the default duration is ≤ 3.0 seconds.\n\nWhat is the name and behaviour of the new action you want to add?"
+  }
+}

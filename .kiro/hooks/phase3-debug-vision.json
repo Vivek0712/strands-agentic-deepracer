@@ -1,0 +1,12 @@
+{
+  "name": "phase3-debug-vision",
+  "description": "Guide for debugging Nova Pro vision assessment issues",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Debug Phase 3 vision assessment issues. Check in this order:\n\n1. VISION MODEL ACCESS — verify Nova Pro is accessible:\n   Check VISION_MODEL in .env (default: us.amazon.nova-pro-v1:0)\n   Check AWS_REGION in .env (default: us-east-1)\n   Verify IAM permissions include bedrock:InvokeModel for the vision model\n\n2. TIMEOUT ISSUES — if vision checks are slow:\n   VISION_TIMEOUT default is 4.0 s. Increase in .env: VISION_TIMEOUT=8.0\n   Timeout always returns 'continue' — execution is never blocked\n\n3. ALWAYS CONTINUING — if vision never replans or aborts:\n   Check confidence threshold — VisionAssessor uses temperature=0.1\n   Check _SYSTEM_PROMPT bias rules — default is conservative (continue unless imminent collision)\n   Check that instruction contains 'stop when' or 'avoid' keywords for non-continue decisions\n\n4. TOO MANY REPLANS — if vision replans excessively:\n   Reduce MAX_REPLANS in .env (default: 3)\n   Increase VISION_MIN_STEP to skip more short steps (default: 0.5 s)\n\n5. VISION SKIPPING ALL STEPS — if no vision checks run:\n   Check _should_assess() — returns False for steps < VISION_MIN_STEP_SECS\n   Check _has_vision — must be True (requires CameraPolicy, not NovaPolicy)\n   Verify --vision flag used in main.py\n\n6. JSON PARSE ERRORS — if VisionAssessor logs 'JSON parse failure':\n   Nova Pro returned non-JSON. Check raw_response in logs.\n   _parse_decision() strips markdown fences — if model adds other formatting, update the regex.\n\nReport what you find."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "phase3-tune-vision",
+  "description": "Guide for tuning vision sensitivity without code changes",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Tune Phase 3 vision sensitivity. All changes are .env only — no code changes needed.\n\nCURRENT DEFAULTS:\n  VISION_MODEL=us.amazon.nova-pro-v1:0\n  MAX_REPLANS=3\n  VISION_TIMEOUT=4.0\n  VISION_MIN_STEP=0.5\n\nTO MAKE VISION MORE CONSERVATIVE (fewer interventions):\n  VISION_MIN_STEP=1.0    # skip steps shorter than 1 s\n  MAX_REPLANS=1          # allow at most 1 replan per run\n  VISION_TIMEOUT=2.0     # shorter timeout → more timeouts → more 'continue'\n\nTO MAKE VISION MORE AGGRESSIVE (more interventions):\n  VISION_MIN_STEP=0.3    # assess even short steps\n  MAX_REPLANS=5          # allow up to 5 replans per run\n  VISION_TIMEOUT=8.0     # longer timeout → more time for Nova Pro to respond\n\nTO DISABLE VISION ENTIRELY:\n  Use python main.py (without --vision flag)\n  Or python main.py --mock\n\nNOTE: Changing VISION_MODEL or AWS_REGION requires restarting the server.\nChanging MAX_REPLANS, VISION_TIMEOUT, VISION_MIN_STEP takes effect on next execution\n(values read from agent.py constants at import time — restart required for .env changes).\n\nShow the current .env values and suggest appropriate tuning for the described use case."
+  }
+}

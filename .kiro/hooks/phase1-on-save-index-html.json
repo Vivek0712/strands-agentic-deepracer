@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Validate index.html on save",
+  "description": "When the web UI template is saved, verify the confirmation gate, state management, and result feedback are all intact.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/templates/index.html"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/templates/index.html was just saved. Please review it and verify:\n1. The plan panel (#planBox) is hidden by default (display:none) and only shown after a successful /api/plan response.\n2. The Execute button (#execute) is only clickable after a plan is loaded — it must be guarded by 'if (!currentPlan) return'.\n3. The Plan button (#getPlan) is disabled during the /api/plan fetch and re-enabled after.\n4. The Execute button (#execute) is disabled during the /api/execute fetch and re-enabled after.\n5. The Cancel button clears currentPlan, hides #planBox, and hides the result box.\n6. Chat history is cleared on each new Plan request before adding new bubbles.\n7. The result box has three CSS states: loading (blue), success (green), error (red).\n8. Static assets reference /assets/strands-logo.png and /assets/deepracer-logo.png.\n9. The layout uses a two-column grid that collapses to single column at max-width: 768px.\nReport any violations found."
+  }
+}

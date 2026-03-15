@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Validate main.py on save",
+  "description": "When main.py is saved, verify the REPL confirmation gate, error handling, and separation of concerns.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/main.py"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/main.py was just saved. Please review it and verify:\n1. The confirmation prompt requires the user to type 'y' or 'yes' — any other input cancels execution.\n2. KeyboardInterrupt is caught and handled gracefully (no crash, loop continues).\n3. Empty user input is silently ignored (no error, just re-prompt).\n4. Plans with zero steps do not attempt execution.\n5. main.py contains no direct calls to deepracer_tools functions — all agent logic is delegated to agent.py.\n6. Agent creation failure prints a clear error message and exits (does not enter the REPL loop).\n7. The welcome message displays the current MODEL name.\nReport any violations found."
+  }
+}

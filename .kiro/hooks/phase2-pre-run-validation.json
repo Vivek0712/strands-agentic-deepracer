@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Pre-run validation checklist",
+  "description": "Manual trigger — run before connecting to the physical DeepRacer car.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Pre-run validation for phase-2-strands-robots-deepracer. Check all items before connecting to the physical car:\n\n**Environment**\n- [ ] .env file exists in phase-2-strands-robots-deepracer/\n- [ ] DEEPRACER_IP is set to the car's current IP address\n- [ ] DEEPRACER_PASSWORD is set (non-empty)\n- [ ] AWS_REGION is set and matches your Bedrock access region\n- [ ] MODEL is set to a model you have Bedrock access to\n- [ ] DEEPRACER_MAX_STEP_SECS=5.0 (or lower for extra safety)\n\n**Network**\n- [ ] Your machine is on the same WiFi network as the DeepRacer\n- [ ] You can ping DEEPRACER_IP\n- [ ] DeepRacer web console is accessible at https://DEEPRACER_IP\n\n**Car state**\n- [ ] Car is on a clear surface with at least 1m space in all directions\n- [ ] Battery is charged (check web console)\n- [ ] No obstacles in planned path\n- [ ] You are ready to physically intervene if needed\n\n**Code**\n- [ ] Run `python main.py --mock` first to verify the plan looks correct\n- [ ] Confirm the plan ends with a stop step\n- [ ] Confirm no step exceeds 5.0 seconds\n- [ ] Confirm rotation math is correct for closed-loop patterns\n\n**Startup**\n- [ ] Run `python main.py` (live mode)\n- [ ] Type 'connect to the car' first to verify connectivity\n- [ ] Only proceed with movement plans after successful connect\n\nAll clear? Proceed with caution."
+  }
+}

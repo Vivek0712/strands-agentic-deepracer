@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Upgrade Bedrock model",
+  "description": "Manual trigger — guide for switching to a different Bedrock model.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Guide me through upgrading the Bedrock model in phase-2-strands-robots-deepracer.\n\nPlease help with the following steps:\n\n**Step 1: Check available models**\nCommon Nova model IDs:\n- `us.amazon.nova-lite-v1:0` — default, fast, cost-effective\n- `us.amazon.nova-pro-v1:0` — more capable, higher cost\n- `us.amazon.nova-micro-v1:0` — fastest, most limited\n\n**Step 2: Verify Bedrock access**\nConfirm you have access to the target model in your AWS region. Check the MODEL env var region matches AWS_REGION.\n\n**Step 3: Update .env**\nChange the MODEL variable in phase-2-strands-robots-deepracer/.env:\n```\nMODEL=us.amazon.nova-pro-v1:0\n```\nOr use the --model flag at runtime without changing .env:\n```bash\npython main.py --model us.amazon.nova-pro-v1:0\n```\n\n**Step 4: Test with mock first**\nThe --mock flag bypasses Bedrock entirely — use it to verify the rest of the stack works:\n```bash\npython main.py --mock\n```\n\n**Step 5: Test planning quality**\nRun a few complex patterns and check:\n- Does _reasoning contain all 8 chain-of-thought points?\n- Is the VERIFY step present and correct?\n- Are rotation totals accurate?\n- Are stabilisation steps inserted correctly?\n\n**Step 6: Watch for JSON format issues**\nSome models may wrap output in markdown fences. The `_strip_fences()` function in agent.py handles this, but verify it works with the new model.\n\n**Step 7: Adjust PLANNER_PROMPT if needed**\nIf the new model consistently produces wrong output, the prompt may need tuning. Never change the rotation calibration constants — only the prompt wording.\n\nWhich model are you upgrading to?"
+  }
+}

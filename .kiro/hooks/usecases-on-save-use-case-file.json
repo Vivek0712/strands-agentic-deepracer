@@ -1,0 +1,9 @@
+{
+  "name": "Use Cases: Review use case file on save",
+  "event": "onFileSave",
+  "filePattern": "use_cases/*.py",
+  "action": {
+    "type": "send_message",
+    "message": "A use case file in use_cases/ was just saved. Please review it against the required interface contract:\n\n1. REQUIRED EXPORTS — confirm all 9 functions present: connect, move_forward, move_backward, turn_left, turn_right, stop, is_error, reset_client, activate_camera\n2. REQUIRED PHYSICS — confirm all 4 constants present: PHYSICS_MIN_TURN_RADIUS_M, PHYSICS_MAX_CORNER_SPEED, PHYSICS_FWD_SPEED_MS, PHYSICS_TURN_SPEED_MS\n3. ERROR STRINGS — confirm every tool function wraps its body in try/except and returns f'Error in {func_name}: {exc}' — never raises\n4. stop() SAFETY — confirm stop() attempts hardware stop even if connection is degraded; catches all exceptions\n5. reset_client() — confirm it clears the cached connection (_CLIENT/_VEHICLE/_WS/_SOCK) and does not raise\n6. activate_camera() — confirm it returns True if no camera; catches exceptions and returns False on failure\n7. CREDENTIALS — confirm no passwords or API keys appear in return strings or log messages\n8. PHYSICS VALUES — confirm PHYSICS_MIN_TURN_RADIUS_M is 0.0 for in-place robots, float('inf') for constrained robots (pipeline_crawler, camera_dolly)\n9. PLATFORM_NAME and PLATFORM_DESC — confirm both are present\n10. .env loading — confirm load_dotenv() is called at module level\n\nReport any issues found."
+  }
+}

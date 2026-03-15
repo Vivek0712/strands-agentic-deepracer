@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Validate app_ui.py on save",
+  "description": "When app_ui.py is saved, verify Flask routes, planner singleton pattern, response shapes, and that debug mode is off.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/app_ui.py"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/app_ui.py was just saved. Please review it and verify:\n1. app.run() uses debug=False.\n2. get_planner() uses hasattr caching — the agent is NOT recreated on every request.\n3. POST /api/plan returns 400 if prompt is missing or empty.\n4. POST /api/execute returns 400 if plan is missing or has no steps.\n5. The execute results summary contains only: step (int), action (str), seconds (float|null), ok (bool) — no raw tool output strings.\n6. The Flask static_folder points to BASE_DIR.parent / 'assets' and static_url_path is '/assets'.\n7. All error responses use the shape {'error': '...'} with an appropriate HTTP status code.\nReport any violations found."
+  }
+}

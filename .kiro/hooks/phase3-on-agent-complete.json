@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-agent-complete",
+  "description": "Post-execution checklist after any Phase 3 agent task completes",
+  "enabled": true,
+  "trigger": {
+    "type": "agent_complete",
+    "filePattern": "phase-3-adaptive-visual-navigation/**"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "A Phase 3 agent task just completed. Verify the output:\n\n1. No new @tool functions added to deepracer_tools.py — Phase 3 adds no new tools\n2. No base64 encoding added to vision_assessor.py — boto3 Converse API takes raw bytes\n3. VisionAssessor.assess() still wraps _call_nova() in try/except\n4. _should_assess() still returns False for 'stop' and 'connect'\n5. asyncio.wait_for still wraps assess_step() with VISION_ASSESS_TIMEOUT\n6. validate_plan() still called on every vision-triggered replan\n7. CameraPolicy.plan() still delegates to NovaPolicy — vision not used during planning\n8. No DEEPRACER_PASSWORD in any log statement or error message\n9. camera_stream.py still uses SOI/EOI markers — not multipart boundary parsing\n10. /frame route still returns HTTP 200 with placeholder fallback\n\nReport any regressions."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Sync tasks when requirements change",
+  "description": "When any Phase 1 requirements.md spec file is saved, remind the agent to check if tasks.md and steering files need updating.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": ".kiro/specs/phase1-*/requirements.md"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "A Phase 1 requirements.md file was just saved. Please review the changes and check:\n\n1. Does the corresponding tasks.md file need new tasks to implement the updated requirements?\n2. Do any steering files (.kiro/steering/phase1-*.md) need updating to reflect the new rules or patterns?\n3. Are there any other specs that reference the changed requirements (e.g. phase1-error-handling references phase1-deepracer-tools patterns)?\n4. If new actions were added to requirements, do ALL of these need updating?\n   - phase1-plan-json-schema/requirements.md (REQ-SCHEMA-3 action table)\n   - phase1-planner-agent/requirements.md (REQ-PLAN-2 and REQ-PLAN-4)\n   - phase1-deepracer-tools/tasks.md\n   - phase1-deepracer-tools/requirements.md\n\nPlease identify and list any files that need updating."
+  }
+}

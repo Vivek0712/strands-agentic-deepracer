@@ -1,0 +1,12 @@
+{
+  "name": "phase3-safety-audit",
+  "description": "Full Phase 3 safety audit across all files",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Run a full Phase 3 safety audit across all files in phase-3-adaptive-visual-navigation/. Check every rule:\n\nCAMERA SAFETY:\n- Camera stream failures do NOT block or abort plan execution\n- get_latest_frame() returning None causes immediate 'continue' — no API call\n- _should_assess() returns False for 'stop' and 'connect' actions\n- _should_assess() returns False when step_seconds < VISION_MIN_STEP_SECS\n\nVISION ASSESSMENT SAFETY:\n- VisionAssessor.assess() catches ALL exceptions — returns safe_continue(), never raises\n- asyncio.wait_for wraps every assess_step() call with VISION_ASSESS_TIMEOUT\n- replan_count < MAX_REPLANS checked before acting on 'replan'\n- validate_plan() called on every vision-triggered replan\n\nEMERGENCY STOP:\n- Vision 'abort' calls deepracer_stop() BEFORE setting result.aborted\n- Hardware step failure calls deepracer_stop() even when vision is active\n- CameraPolicy.cleanup() calls camera_stream.stop()\n\nPHASE 2 RULES (still apply):\n- client.stop_car() in finally block in _move_for_duration()\n- MAX_STEP_SECONDS hard cap enforced in execute_step() and validate_plan()\n- Last step must be 'stop'\n- DEEPRACER_PASSWORD never logged\n- is_error() is single source of truth\n\nReport all violations with file name and line number."
+  }
+}

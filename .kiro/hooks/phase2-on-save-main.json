@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Validate main.py on save",
+  "description": "When main.py is saved, audit CLI flags, confirmation gate, print functions, and mock mode.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/main.py"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "main.py was just saved in phase-2-strands-robots-deepracer. Please audit:\n\n1. CLI FLAGS — confirm --mock uses create_policy('mock') and --model overrides the model ID.\n2. CONFIRMATION GATE — confirm user must type 'y' or 'yes' to execute. Any other input must cancel. KeyboardInterrupt and EOFError during confirmation must print 'Cancelled' and continue the loop.\n3. MOCK MODE — confirm mock mode shows '[MOCK — no Bedrock / no hardware]' in welcome screen and calls policy.plan() not plan_navigation().\n4. validate_plan() CALLED — confirm validate_plan() is called after policy.plan() in mock mode (MockPolicy skips it internally).\n5. print_patterns() — confirm all 15 patterns are listed.\n6. print_physics() — confirm rotation calibration table is present (1.5s≈90°, formula, full table).\n7. print_results() ICONS — confirm ✓ for ok, ✗ for failed, ⚡ for emergency steps.\n8. ERROR HANDLING — confirm planning exceptions are caught and printed, REPL continues. Execution exceptions are caught and printed, REPL continues.\n\nReport any violations."
+  }
+}

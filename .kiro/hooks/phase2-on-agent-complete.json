@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Post-agent-complete review",
+  "description": "After an agent execution completes, review changes for safety rule compliance.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "agentEvent",
+    "event": "agentExecutionComplete"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "An agent execution just completed for phase-2-strands-robots-deepracer. Please review any files that were modified and check for safety rule violations:\n\n**Critical checks (must pass before any code runs on hardware)**\n\n1. If deepracer_tools.py was modified:\n   - finally block in _move_for_duration() still has NO return statement\n   - is_error() logic unchanged: startswith('error') OR 'stop_car failed'\n   - _get_client() still raises RuntimeError when PASSWORD is empty\n\n2. If agent.py was modified:\n   - validate_plan() still rejects seconds > MAX_STEP_SECONDS\n   - validate_plan() still rejects last step != 'stop'\n   - execute_plan() and execute_plan_full() still default stop_on_failure=True\n   - Rotation constants DEGREES_PER_SECOND and SECONDS_PER_DEGREE unchanged\n\n3. If deepracer_agent_tool.py was modified:\n   - cleanup() order preserved: shutdown_event → _action_stop() → executor.shutdown() → reset_client()\n   - _execute_task_async still checks shutdown_event at start of each step iteration\n   - _action_stop() still calls deepracer_stop() regardless of state\n\n4. If any file was modified:\n   - DEEPRACER_PASSWORD not introduced into any log, print, or error message\n   - No new inline error detection logic (must use is_error())\n\nReport any violations found. If all clear, confirm the changes are safe to run."
+  }
+}

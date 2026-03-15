@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-deepracer-agent-tool",
+  "description": "Review deepracer_agent_tool.py for Phase 3 vision loop safety when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/deepracer_agent_tool.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "deepracer_agent_tool.py was just saved. Review it for Phase 3 safety:\n1. _should_assess() returns False for 'stop' and 'connect' actions\n2. _should_assess() returns False when step_seconds < VISION_MIN_STEP_SECS\n3. _assess_and_decide() returns 'continue' immediately when get_latest_frame() returns None\n4. asyncio.wait_for wraps assess_step() call with VISION_ASSESS_TIMEOUT — TimeoutError returns 'continue'\n5. 'abort' decision: calls deepracer_stop() BEFORE setting result.aborted\n6. 'replan' decision: replan_count < MAX_REPLANS checked before acting; at limit returns 'continue'\n7. validate_plan() called on every vision-triggered replan\n8. Main loop checks self._task_state.status != RUNNING and self._shutdown_event.is_set() at top of every iteration\n9. Hardware step failure still calls deepracer_stop() even when vision is active\n10. _execute_approved_plan() uses _instruction_hint or pattern as original_instruction\nReport any violations."
+  }
+}

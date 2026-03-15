@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Recalibrate rotation constants",
+  "description": "Manual trigger — guided workflow for updating rotation calibration after physical re-measurement.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Guide me through recalibrating the rotation constants for phase-2-strands-robots-deepracer.\n\n⚠️  WARNING: This should only be done after physically re-measuring on the car. Changing these values without measurement will break all 15 patterns.\n\n**When recalibration is needed:**\n- You changed DEEPRACER_STEER_ANGLE in .env\n- You changed DEEPRACER_TURN_THROTTLE in .env\n- The car is consistently over/under-rotating on known patterns\n\n**Step 1: Physical measurement**\n- Place the car on a flat surface with a reference mark\n- Run a single turn step for exactly 1.5 seconds\n- Measure the actual heading change in degrees\n- Repeat 3 times and average\n- New DEGREES_PER_SECOND = measured_degrees / 1.5\n\n**Step 2: Update agent.py constants**\nRead phase-2-strands-robots-deepracer/agent.py and update ONLY these three lines:\n```python\nDEGREES_PER_SECOND = <new_value> / 1.5\nSECONDS_PER_DEGREE = 1.5 / <new_value>\nFULL_ROTATION_SECS = (360.0 / <new_value>) * 1.5\n```\n\n**Step 3: Update PLANNER_PROMPT reference table**\nRecalculate and update the reference table in PLANNER_PROMPT:\n- 60° → (60 / new_degrees_per_second) s\n- 72° → (72 / new_degrees_per_second) s\n- 90° → (90 / new_degrees_per_second) s\n- 120° → (120 / new_degrees_per_second) s\n- 180° → (180 / new_degrees_per_second) s\n- 360° → (360 / new_degrees_per_second) s\n\n**Step 4: Update all 15 pattern examples in PLANNER_PROMPT**\nRecalculate turn durations for every pattern.\n\n**Step 5: Update .env comment**\nUpdate the calibration warning comment with the new measured value.\n\n**Step 6: Verify**\n- Run python main.py --mock and request a circle\n- Confirm _check_rotation() does not warn\n- Test on physical car with a simple square pattern\n\nWhat are your new measured values?"
+  }
+}

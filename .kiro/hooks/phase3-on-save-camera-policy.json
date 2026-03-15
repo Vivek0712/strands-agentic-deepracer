@@ -1,0 +1,13 @@
+{
+  "name": "phase3-on-save-camera-policy",
+  "description": "Review camera_policy.py for correctness when saved",
+  "enabled": true,
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-3-adaptive-visual-navigation/camera_policy.py"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "camera_policy.py was just saved. Review it for:\n1. plan() delegates entirely to self._nova_policy.plan() — vision NOT used during planning\n2. has_vision property returns True\n3. camera_stream property returns self._camera_stream\n4. assess_step() calls self._vision_assessor.assess() — no try/except needed here (VisionAssessor handles it)\n5. cleanup() calls self._camera_stream.stop()\n6. create_camera_policy() creates NovaPolicy, VisionAssessor, CameraStream internally\n7. max_replans falls back to int(os.getenv(\"MAX_REPLANS\", \"3\"))\n8. min_assess_secs falls back to float(os.getenv(\"VISION_MIN_STEP\", \"0.5\"))\n9. provider_name returns f\"camera+{self._nova_policy.provider_name}\"\nReport any violations."
+  }
+}

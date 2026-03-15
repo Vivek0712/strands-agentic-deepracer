@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Pre-run environment validation",
+  "description": "Manual hook — run this before starting main.py or app_ui.py to validate the environment is correctly configured.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the Phase 1 pre-run validation. Please check the following before running main.py or app_ui.py:\n\n1. Does phase-1-agentic-navigation-planner/.env exist? (not just .env.example)\n2. Is DEEPRACER_IP set to the correct IP address of your DeepRacer on the local network?\n3. Is DEEPRACER_PASSWORD set to the DeepRacer web console password?\n4. Is AWS_REGION set to a region where Amazon Bedrock Nova Lite is available (e.g. us-east-1)?\n5. Are AWS credentials configured in the environment (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY or an IAM role)?\n6. Is the DeepRacer car powered on and reachable at the configured IP?\n7. Are all dependencies installed? Run: pip install -r phase-1-agentic-navigation-planner/requirements.txt\n\nIf all checks pass, run:\n  Terminal REPL: python phase-1-agentic-navigation-planner/main.py\n  Web UI:        python phase-1-agentic-navigation-planner/app_ui.py\n\nPlease check the .env file now and report any missing or suspicious values (without revealing the password)."
+  }
+}

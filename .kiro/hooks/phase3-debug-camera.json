@@ -1,0 +1,12 @@
+{
+  "name": "phase3-debug-camera",
+  "description": "Guide for debugging camera stream issues",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "send_message",
+    "message": "Debug the Phase 3 camera stream. Check in this order:\n\n1. CAMERA STATUS — check /vision_status endpoint:\n   curl http://127.0.0.1:5000/vision_status\n   Look for: running=true, frames>0, staleness<2.0, error=null\n\n2. VEHICLE REACHABLE — verify DeepRacer is on the network:\n   ping $DEEPRACER_IP\n   Check DEEPRACER_IP in .env matches the car's actual IP\n\n3. STREAM URL — the camera stream uses get_raw_video_stream() from aws-deepracer-control-v2\n   The patched method in deepracer_tools.py uses: /route?topic=/camera_pkg/display_mjpeg&width=480&height=360\n   Verify the patch is applied: drctl.Client.get_raw_video_stream = _get_raw_video_stream_patched\n\n4. RECONNECT — if stream stopped, try:\n   curl -X POST http://127.0.0.1:5000/camera/reconnect\n\n5. REINIT — if init failed entirely:\n   curl -X POST http://127.0.0.1:5000/reinit\n\n6. FRAME STALENESS — if frames>0 but staleness is high:\n   Stream is running but car may have rebooted. Try /camera/reconnect.\n\n7. EXECUTION WITHOUT CAMERA — camera is advisory. If stream fails:\n   _should_assess() still runs but get_latest_frame() returns None → 'continue'\n   Execution proceeds normally without vision checks.\n\nReport what you find and suggest fixes."
+  }
+}

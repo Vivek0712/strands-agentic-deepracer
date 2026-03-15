@@ -1,0 +1,14 @@
+{
+  "name": "Phase 2: Validate deepracer_tools.py on save",
+  "description": "When deepracer_tools.py is saved, audit is_error(), finally pattern, reset_client(), and physics constants.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["phase-2-strands-robots-deepracer/deepracer_tools.py"]
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "deepracer_tools.py was just saved in phase-2-strands-robots-deepracer. Please audit:\n\n1. is_error() — confirm it checks BOTH `message.lower().startswith('error')` AND `'stop_car failed' in message.lower()`. This is the single source of truth — no caller may duplicate this logic.\n2. FINALLY BUG FIX — confirm _move_for_duration() finally block has NO return statement. Confirm stop_warning is declared before the try block as `Optional[str] = None` and checked AFTER the try/finally.\n3. reset_client() — confirm it sets `_CLIENT = None` and nothing else.\n4. PHYSICS CONSTANTS — confirm all four PHYSICS_* constants are present: PHYSICS_MIN_TURN_RADIUS_M=0.28, PHYSICS_MAX_CORNER_SPEED=1.5, PHYSICS_FWD_SPEED_MS=0.40, PHYSICS_TURN_SPEED_MS=0.25.\n5. _get_client() — confirm it raises RuntimeError (not returns error string) when PASSWORD is empty. Confirm PASSWORD never appears in any error message.\n6. TOOL DEFAULTS — confirm deepracer_turn_left and deepracer_turn_right default to 1.5s (not 2.0s).\n7. THROTTLE SIGNS — forward uses -FWD_THROTTLE, backward uses +FWD_THROTTLE, turns use -TURN_THROTTLE.\n\nReport any violations."
+  }
+}

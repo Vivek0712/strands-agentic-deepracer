@@ -1,0 +1,12 @@
+{
+  "name": "Phase 1: Sync .env.example on save",
+  "description": "When .env.example is saved, verify all 8 required variables are documented with correct defaults and placeholder values.",
+  "trigger": {
+    "type": "file_save",
+    "filePattern": "phase-1-agentic-navigation-planner/.env.example"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "The file phase-1-agentic-navigation-planner/.env.example was just saved. Please review it and verify:\n1. All 8 variables are present: MODEL, DEEPRACER_IP, DEEPRACER_PASSWORD, DEEPRACER_FWD_THROTTLE, DEEPRACER_TURN_THROTTLE, DEEPRACER_MAX_SPEED, DEEPRACER_STEER_ANGLE, AWS_REGION.\n2. DEEPRACER_PASSWORD uses a placeholder like 'your_password_here' — never a real value.\n3. MODEL is set to 'us.amazon.nova-lite-v1:0'.\n4. All optional motion tuning variables show their default values in comments.\n5. No real credentials or IP addresses that look like production values are present.\nReport any issues found."
+  }
+}

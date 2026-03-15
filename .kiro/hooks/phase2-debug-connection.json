@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Debug connection issues",
+  "description": "Manual trigger — step-by-step guide for diagnosing DeepRacer connection failures.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Debug DeepRacer connection issues for phase-2-strands-robots-deepracer.\n\nPlease help diagnose the connection problem by checking:\n\n**Step 1: Environment**\n- Read phase-2-strands-robots-deepracer/.env\n- Confirm DEEPRACER_IP and DEEPRACER_PASSWORD are set (do NOT print the password value)\n- Confirm load_dotenv() is called with the correct path in deepracer_tools.py\n\n**Step 2: Network**\n- Is the machine on the same network as the car?\n- Can you reach the DeepRacer web console at https://DEEPRACER_IP?\n- Common issue: DeepRacer uses a self-signed cert — browser warning is expected\n\n**Step 3: Client state**\n- Check if _CLIENT is stale — call reset_client() to force a fresh connection\n- reset_client() sets _CLIENT = None; next _get_client() call creates a fresh one\n- In code: `from deepracer_tools import reset_client; reset_client()`\n\n**Step 4: HTTP errors**\n- 401/403: password is wrong or session expired → reset_client() then retry\n- Connection refused: car is off or IP is wrong\n- Timeout: car is on a different network segment\n\n**Step 5: DeepRacerTool recovery**\n- If using DeepRacerTool, call cleanup() then recreate the tool\n- cleanup() calls reset_client() automatically\n\n**Step 6: Verify fix**\n- Run `python main.py --mock` first to confirm code works offline\n- Then try `python main.py` and type 'connect to the car'\n\nWhat error message are you seeing?"
+  }
+}

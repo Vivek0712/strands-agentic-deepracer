@@ -1,0 +1,13 @@
+{
+  "name": "Phase 2: Add a new navigation pattern",
+  "description": "Manual trigger — guided workflow for adding a verified pattern to the library.",
+  "version": "1.0.0",
+  "enabled": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Guide me through adding a new navigation pattern to phase-2-strands-robots-deepracer.\n\nFollow this exact workflow:\n\n**Step 1: Design the pattern**\n- What is the pattern name? (lowercase, hyphenated)\n- How many sides/arcs? What angle per corner?\n- Is it a closed loop (returns to start heading)? If so, total degrees must equal 360° (or 720° for figure-8)\n\n**Step 2: Calculate rotation math**\n- Per-corner angle = 360° / N sides\n- Per-corner duration = (angle / 90) × 1.5 s\n- Total turn time = N × per-corner duration\n- Total degrees = total_turn_time × (90 / 1.5)\n- VERIFY: total degrees must equal 360° for closed loops\n\n**Step 3: Check step count**\n- Count all steps including forward, turn, stabilisation, and stop\n- Must be ≤ 20 steps total\n\n**Step 4: Add stabilisation steps**\n- Any left→right or right→left reversal needs forward(0.3) inserted between them\n\n**Step 5: Update agent.py**\n- Add pattern to PLANNER_PROMPT with VERIFY annotation showing the rotation math\n- Add anti-example if there's a common wrong version\n- If closed loop: add pattern name to _CLOSED_LOOP_PATTERNS frozenset\n\n**Step 6: Update main.py**\n- Add to print_patterns() with name and description\n\n**Step 7: Update app_ui.py**\n- Add to patterns list in index() route as (name, description) tuple\n- Consider adding to quick_prompts list\n\n**Step 8: Verify**\n- Run python main.py --mock and request the new pattern\n- Confirm _check_rotation() does not warn\n- Confirm step count ≤ 20\n\nWhat pattern would you like to add?"
+  }
+}

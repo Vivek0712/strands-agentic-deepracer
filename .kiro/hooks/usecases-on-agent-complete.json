@@ -1,0 +1,8 @@
+{
+  "name": "Use Cases: Post-execution review",
+  "event": "onAgentComplete",
+  "action": {
+    "type": "send_message",
+    "message": "Agent execution completed in the use_cases workspace. Please verify:\n\n1. INTERFACE INTEGRITY — if any use case .py file was modified, confirm validate_tools() still passes for it\n2. SAFETY RULES — confirm no tool function was changed to raise instead of returning an error string\n3. stop() — confirm stop() still sends a hardware stop command and catches all exceptions\n4. CREDENTIALS — confirm no passwords or API keys were introduced into return strings or log messages\n5. PHYSICS CONSTANTS — if any physics constant was changed, flag it for re-measurement on real hardware\n6. base_tools.py — if REQUIRED_FUNCTIONS or REQUIRED_PHYSICS was changed, confirm all existing use cases still pass validate_tools()\n\nReport any concerns."
+  }
+}

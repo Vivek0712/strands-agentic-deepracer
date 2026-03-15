@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Add new @tool function guide",
+  "description": "Manual hook — step-by-step guide for adding a new @tool function to deepracer_tools.py and wiring it through the full stack.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the 'Add New @tool Function' guide for Phase 1.\n\nTo add a new tool, follow these steps in order and confirm each one:\n\n### Step 1 — deepracer_tools.py\n- Add a new function with the @tool decorator\n- Write a clear one-line docstring (Strands uses this as the tool description)\n- Add typed parameters: `seconds: float = 2.0` for motion tools, return type `-> str`\n- If it involves motion: call `_move_for_duration(steering, throttle, seconds)` — do NOT call client.move() directly\n- If it does NOT involve motion: call _get_client() and handle errors with return strings\n\n### Step 2 — agent.py\n- Add the new function to the import list from deepracer_tools\n- Add a new elif branch in execute_step() for the action name (use lowercase)\n- If it's a motion action, include the seconds defaulting/coercion logic\n\n### Step 3 — PLANNER_PROMPT in agent.py\n- Add the new action name to the 'Allowed action_name values' list\n- Add a description of when to use it\n- Specify whether it takes a 'seconds' field\n\n### Step 4 — Specs\n- Update .kiro/specs/phase1-deepracer-tools/tasks.md with a task for the new tool\n- Update .kiro/specs/phase1-planner-agent/requirements.md REQ-PLAN-2 and REQ-PLAN-4\n- Update .kiro/specs/phase1-plan-json-schema/requirements.md REQ-SCHEMA-3 action table\n\n### Safety Check\n- Does the new tool call stop_car() in a finally block if it calls client.move()?\n- Does it return error strings (not raise) on failure?\n- Is the default duration ≤ 3.0 seconds?\n\nWhat is the name and intended behaviour of the new tool?"
+  }
+}

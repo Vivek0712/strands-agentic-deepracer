@@ -1,0 +1,11 @@
+{
+  "name": "Phase 1: Debug DeepRacer connection issues",
+  "description": "Manual hook — diagnose and fix DeepRacer connectivity problems.",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "You've triggered the DeepRacer connection debugger for Phase 1.\n\nPlease check the following in order:\n\n1. NETWORK: Is the DeepRacer car powered on and showing a solid WiFi indicator?\n2. NETWORK: Is your computer on the same WiFi network as the DeepRacer?\n3. CONFIG: What is DEEPRACER_IP set to in phase-1-agentic-navigation-planner/.env? Does it match the IP shown on the DeepRacer's display or in your router's device list?\n4. CONFIG: Is DEEPRACER_PASSWORD set to the correct web console password?\n5. REACHABILITY: Can you open https://<DEEPRACER_IP> in a browser? (You may need to accept a self-signed cert warning)\n6. CODE: In deepracer_tools.py, does _get_client() raise RuntimeError if PASSWORD is None or empty?\n7. CODE: Does deepracer_connect() capture show_vehicle_info() output with redirect_stdout?\n\nCommon fixes:\n- Wrong IP: check the DeepRacer's touchscreen or router DHCP table\n- SSL errors: aws-deepracer-control-v2 handles this internally — no action needed\n- Password wrong: reset via the DeepRacer web console\n- Car not in manual mode: deepracer_tools calls set_manual_mode() automatically\n\nPlease read the current .env file (without revealing the password value) and report what you find."
+  }
+}
