@@ -45,6 +45,8 @@ The first proof of concept. A Strands Agent powered by **Amazon Nova Lite** rece
 
 **Key characteristics:** single-shot planning, bare `@tool` functions, terminal REPL, basic Flask UI.
 
+![Phase 1 demo](assets/gif_phase1demo.gif)
+
 📁 [`phase-1-agentic-navigation-planner/`](./phase-1-agentic-navigation-planner/)
 
 ---
@@ -63,6 +65,8 @@ A ground-up redesign modelled on [strands-labs/robots](https://github.com/strand
 - Rotation bug validator — `_check_rotation()` flags plans where total degrees ≠ 360°
 - Policy abstraction — swap Nova / Mock / Replay without touching the executor
 - Live SSE step streaming to Flask dashboard
+
+![Phase 2 demo](assets/phase2gif.gif)
 
 📁 [`phase-2-strands-robots-deepracer/`](./phase-2-strands-robots-deepracer/)
 
@@ -85,6 +89,8 @@ The full autonomous system. **Amazon Nova Pro** — Amazon's most capable multim
 
 📁 [`phase-3-adaptive-visual-navigation/`](./phase-3-adaptive-visual-navigation/)  
 📖 [Phase 3 README](./phase-3-adaptive-visual-navigation/README.md)
+
+![Phase 3 demo](assets/phase3gif.gif)
 
 ---
 
